@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;}
+  a{color:#B4472C;text-decoration:none;}
+  a:hover{color:#8C3520;}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#E5DDD1;display:flex;flex-direction:column;align-items:center;padding:30px 16px 50px;gap:14px;font-family:'Noto Sans KR',sans-serif;box-sizing:border-box;">
+  <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#96897A;">STYLE B · CLAY WARM</div>
+
+  <div style="width:390px;max-width:92vw;height:844px;border-radius:44px;background:#1B1613;padding:12px;box-shadow:0 40px 90px -24px rgba(60,40,25,.45);box-sizing:border-box;">
+    <div style="width:100%;height:100%;border-radius:33px;background:#FBF7F1;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
+
+      <div style="padding:16px 22px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#8B7E70;">
+        <span>9:41</span><span>▮▮▯</span>
+      </div>
+
+      <div style="padding:12px 22px 14px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-family:'Instrument Serif',serif;font-size:31px;line-height:1;color:#2A211B;">이번 주 코트</div>
+          <div style="font-size:11.5px;font-weight:700;color:#B4472C;margin-top:5px;">8월 10일 – 16일 · 정우진</div>
+        </div>
+        <div style="width:40px;height:40px;border-radius:14px;background:#F0E4D6;display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-size:18px;color:#B4472C;">정</div>
+      </div>
+
+      <div style="display:flex;gap:6px;padding:0 18px 14px;">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+          <button onClick="{{d.onClick}}" style="flex:1;border:none;background:{{d.bg}};border-radius:999px;padding:10px 0 9px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;box-shadow:{{d.shadow}};">
+            <span style="font-size:10px;font-weight:800;color:{{d.sub}};">{{d.label}}</span>
+            <span style="font-family:'Instrument Serif',serif;font-size:18px;line-height:1;color:{{d.color}};">{{d.date}}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:0 18px 20px;display:flex;flex-direction:column;gap:14px;">
+        <sc-for list="{{cards}}" as="c" hint-placeholder-count="2">
+          <div style="background:{{c.cardBg}};border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 2px 0 rgba(140,110,80,.08);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:11.5px;font-weight:800;color:{{c.metaColor}};">{{c.dateLabel}} · {{c.place}}</span>
+              <span style="font-size:10.5px;font-weight:900;background:{{c.pillBg}};color:{{c.pillColor}};padding:5px 10px;border-radius:999px;">{{c.state}}</span>
+            </div>
+
+            <div>
+              <div style="font-family:'Instrument Serif',serif;font-size:44px;line-height:.95;color:#2A211B;letter-spacing:-1px;">{{c.time}}</div>
+              <div style="font-size:15px;font-weight:700;color:{{c.accent}};margin-top:6px;">{{c.court}} · {{c.label}}</div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+              <div style="display:flex;align-items:baseline;gap:6px;">
+                <span style="font-family:'Instrument Serif',serif;font-size:28px;line-height:1;color:#2A211B;">{{c.count}}</span>
+                <span style="font-size:12px;font-weight:700;color:#8B7E70;">/{{c.capacity}}명</span>
+              </div>
+              <span style="font-size:11.5px;font-weight:700;color:#8B7E70;">대기 {{c.waiting}}명</span>
+            </div>
+            <div style="height:8px;border-radius:6px;background:#EFE6DA;overflow:hidden;display:flex;">
+              <div style="height:100%;background:#C97B8E;width:{{c.fPct}};"></div>
+              <div style="height:100%;background:#4B7A55;width:{{c.mPct}};"></div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <sc-for list="{{c.names}}" as="n" hint-placeholder-count="6">
+                <span style="background:{{n.bg}};color:{{n.color}};border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700;">{{n.name}}{{n.suffix}}</span>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;gap:9px;">
+              <sc-for list="{{c.mainVotes}}" as="v" hint-placeholder-count="2">
+                <button onClick="{{v.onClick}}" style="flex:1;border:1.5px solid {{v.border}};background:{{v.bg}};color:{{v.color}};border-radius:999px;padding:14px 0;font-size:15.5px;font-weight:800;cursor:pointer;">{{v.label}}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:7px;">
+              <sc-for list="{{c.subVotes}}" as="v" hint-placeholder-count="3">
+                <button onClick="{{v.onClick}}" style="flex:1;border:none;background:{{v.bg}};color:{{v.color}};border-radius:999px;padding:9px 0;font-size:12px;font-weight:800;cursor:pointer;">{{v.label}}</button>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;gap:7px;border-top:1px dashed #DDD0C0;padding-top:13px;">
+              <button onClick="{{c.toggleCourt}}" style="flex:1;border:none;background:{{c.courtBtnBg}};color:{{c.courtBtnColor}};border-radius:999px;padding:11px 0;font-size:12px;font-weight:900;cursor:pointer;">{{c.courtBtnLabel}}</button>
+              <button style="flex:1;border:none;background:#F0E4D6;color:#B4472C;border-radius:999px;padding:11px 0;font-size:12px;font-weight:900;cursor:pointer;">⇄ 회원 이동</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;background:#F3ECE2;padding:6px;margin:0 18px 18px;border-radius:999px;">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+          <button style="flex:1;border:none;background:{{t.bg}};color:{{t.color}};border-radius:999px;padding:11px 0;font-size:12.5px;font-weight:800;cursor:pointer;">{{t.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { dow: 0, votes: { c1: 'attend', c2: null }, court: false };
+
+  renderVals() {
+    const dowLabels = ['월', '화', '수', '목', '금', '토', '일'];
+    const dates = ['10', '11', '12', '13', '14', '15', '16'];
+    const days = dowLabels.map((label, i) => {
+      const on = i === this.state.dow;
+      return {
+        label, date: dates[i],
+        bg: on ? '#B4472C' : '#F3ECE2',
+        shadow: on ? '0 4px 12px -4px rgba(180,71,44,.6)' : 'none',
+        color: on ? '#FFF8F1' : '#2A211B',
+        sub: on ? '#F0C7B8' : '#96897A',
+        onClick: () => this.setState({ dow: i })
+      };
+    });
+
+    const mkVotes = (id) => {
+      const cur = this.state.votes[id];
+      const main = [
+        { key: 'attend', label: '참석', on: '#4B7A55' },
+        { key: 'absent', label: '불참', on: '#B4472C' }
+      ].map(b => {
+        const sel = cur === b.key;
+        return {
+          label: b.label,
+          bg: sel ? b.on : 'transparent', color: sel ? '#FFF8F1' : '#2A211B', border: sel ? b.on : '#DDD0C0',
+          onClick: () => this.setState(s => ({ votes: { ...s.votes, [id]: b.key } }))
+        };
+      });
+      const sub = ['늦참', '레슨', '연참'].map((label, i) => {
+        const key = ['late', 'lesson', 'series'][i];
+        const sel = cur === key;
+        return {
+          label,
+          bg: sel ? '#E8CFA8' : '#F3ECE2', color: sel ? '#6B4B14' : '#8B7E70',
+          onClick: () => this.setState(s => ({ votes: { ...s.votes, [id]: key } }))
+        };
+      });
+      return { main, sub };
+    };
+
+    const roster = (arr) => arr.map(p => ({
+      name: p[0], suffix: p[2] ? ` ${p[2]}` : '',
+      bg: p[1] === 'F' ? '#F7E7EA' : '#E6EFE6',
+      color: p[1] === 'F' ? '#9C4E63' : '#3B6344'
+    }));
+
+    const v1 = mkVotes('c1'), v2 = mkVotes('c2');
+    const cards = [
+      {
+        cardBg: '#FFFFFF', metaColor: '#8B7E70', accent: '#4B7A55',
+        dateLabel: `8월 ${dates[this.state.dow]}일`, place: '유니온', time: '06:00–08:00',
+        court: this.state.court ? '3·4번 코트' : '4번 코트', label: '새벽테니스',
+        state: this.state.court ? '정원 12명' : '정원 8명',
+        pillBg: this.state.court ? '#E6EFE6' : '#F6EBD8', pillColor: this.state.court ? '#3B6344' : '#7D5A16',
+        count: '6', capacity: this.state.court ? '12' : '8', waiting: '1', fPct: '18%', mPct: '38%',
+        names: roster([['박서연', 'F'], ['이지현', 'F'], ['김도훈', 'M'], ['최민석', 'M'], ['정우진', 'M'], ['한상혁', 'M', '늦참']]),
+        mainVotes: v1.main, subVotes: v1.sub,
+        courtBtnLabel: this.state.court ? '✅ 3번코트 확보됨' : '🎾 3번코트 확보',
+        courtBtnBg: this.state.court ? '#E6EFE6' : '#4B7A55',
+        courtBtnColor: this.state.court ? '#3B6344' : '#FFF8F1',
+        toggleCourt: () => this.setState(s => ({ court: !s.court }))
+      },
+      {
+        cardBg: '#F7F1E8', metaColor: '#8B7E70', accent: '#B4472C',
+        dateLabel: `8월 ${dates[this.state.dow]}일`, place: '종합운동장', time: '20:00–22:00',
+        court: '2번 코트', label: '저녁조', state: '정원 12명',
+        pillBg: '#F6EBD8', pillColor: '#7D5A16',
+        count: '6', capacity: '12', waiting: '2', fPct: '25%', mPct: '25%',
+        names: roster([['오하늘', 'F'], ['신유진', 'F'], ['배소연', 'F'], ['유재현', 'M'], ['조민기', 'M', '늦참'], ['강태오', 'M']]),
+        mainVotes: v2.main, subVotes: v2.sub,
+        courtBtnLabel: '🕗 선마감', courtBtnBg: '#F5E1DC', courtBtnColor: '#B4472C',
+        toggleCourt: () => {}
+      }
+    ];
+
+    return {
+      days, cards,
+      tabs: [
+        { label: '일정', bg: '#FFFFFF', color: '#2A211B' },
+        { label: '알림', bg: 'transparent', color: '#96897A' },
+        { label: '내 정보', bg: 'transparent', color: '#96897A' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

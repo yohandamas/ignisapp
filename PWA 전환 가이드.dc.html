@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;}
+  a{color:#4E7A16;text-decoration:underline;}
+  a:hover{color:#3A5B10;}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#F2F2EE;padding:44px 20px 80px;display:flex;justify-content:center;font-family:'Noto Sans KR',sans-serif;box-sizing:border-box;">
+  <div style="width:100%;max-width:760px;display:flex;flex-direction:column;gap:26px;">
+
+    <div style="display:flex;flex-direction:column;gap:8px;border-bottom:2px solid #14170F;padding-bottom:20px;">
+      <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#7A8270;">STEP 1 · PWA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:.95;letter-spacing:1px;color:#14170F;">이그니스 코트 앱 배포 준비</div>
+      <div style="font-size:14px;color:#5C6553;line-height:1.65;">스토어 심사 없이 기존 사이트를 홈 화면 앱으로 만드는 순서입니다. 코드 파일 2개는 이미 만들어 뒀습니다 — <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;background:#E6E9DE;padding:2px 6px;border-radius:4px;">pwa/manifest.webmanifest</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:13px;background:#E6E9DE;padding:2px 6px;border-radius:4px;">pwa/sw.js</code></div>
+    </div>
+
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="6">
+      <div style="background:#FFFFFF;border:1px solid #DDE2D4;border-left:4px solid {{s.accent}};border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:11px;">
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:{{s.accent}};">{{s.no}}</span>
+          <span style="font-size:17px;font-weight:900;color:#14170F;">{{s.title}}</span>
+          <span style="font-size:10.5px;font-weight:900;color:{{s.accent}};border:1px solid {{s.accent}};padding:3px 9px;border-radius:999px;margin-left:auto;white-space:nowrap;">{{s.who}}</span>
+        </div>
+        <div style="font-size:14px;color:#3D4436;line-height:1.75;">{{s.body}}</div>
+        <sc-if value="{{s.hasCode}}" hint-placeholder-val="{{false}}">
+          <pre style="margin:0;background:#14170F;color:#DDE7C6;border-radius:12px;padding:15px 16px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.7;overflow-x:auto;">{{s.code}}</pre>
+        </sc-if>
+        <sc-if value="{{s.hasNote}}" hint-placeholder-val="{{false}}">
+          <div style="font-size:12.5px;font-weight:700;color:#8A6A12;border-left:2px solid #E0CD9A;padding-left:11px;line-height:1.65;">{{s.note}}</div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <div style="background:#14170F;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#C8F169;">체크리스트</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <sc-for list="{{checklist}}" as="c" hint-placeholder-count="6">
+          <div style="display:flex;gap:11px;align-items:baseline;">
+            <span style="width:15px;height:15px;border:1.5px solid #4A5540;border-radius:4px;flex-shrink:0;"></span>
+            <span style="font-size:13.5px;color:#EDF1E5;line-height:1.6;">{{c.text}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF;border:1px solid #DDE2D4;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#7A8270;">한계 · 미리 알아두기</div>
+      <sc-for list="{{limits}}" as="l" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="font-size:14px;font-weight:800;color:#14170F;">{{l.title}}</div>
+          <div style="font-size:13px;color:#5C6553;line-height:1.7;">{{l.body}}</div>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  renderVals() {
+    const TAG = String.fromCharCode(60);
+    const headSnippet = [
+      TAG + 'link rel="manifest" href="/pwa/manifest.webmanifest">',
+      TAG + 'meta name="theme-color" content="#0F120F">',
+      TAG + 'link rel="apple-touch-icon" href="/pwa/icon-192.png">',
+      TAG + 'script>',
+      "  if ('serviceWorker' in navigator) {",
+      "    addEventListener('load', () => navigator.serviceWorker.register('/pwa/sw.js'));",
+      '  }',
+      TAG + '/script>'
+    ].join('\n');
+
+    const steps = [
+      {
+        no: '01', accent: '#D2601A', who: 'Git',
+        title: '레포 구조 정리 후 GitHub 푸시',
+        body: '정적 사이트이므로 빌드 없이 그대로 배포됩니다. index.html을 루트에, PWA 파일은 /pwa/에 둡니다. Supabase anon 키는 공개되어도 되지만 service_role 키는 절대 커밋하지 마세요.',
+        hasCode: true,
+        code: 'ignis-court/\n├─ index.html\n├─ vercel.json\n└─ pwa/\n   ├─ manifest.webmanifest\n   ├─ sw.js\n   ├─ icon-192.png\n   ├─ icon-512.png\n   └─ icon-maskable-512.png',
+        hasNote: true, note: '.gitignore에 .env, *.key 추가. RLS(행 수준 보안)가 켜져 있는지 Supabase에서 꼭 확인하세요 — anon 키만으로 남의 데이터가 보이면 안 됩니다.'
+      },
+      {
+        no: '02', accent: '#0E8C86', who: 'Vercel',
+        title: 'Vercel 연결 + 캐시 헤더 설정',
+        body: 'Vercel에서 Import Git Repository → 프레임워크는 Other, 빌드 명령 없음. 중요한 건 sw.js를 캐시하지 않는 것입니다 — 캐시되면 회원 폰에 옛 서비스워커가 남아 업데이트가 반영되지 않습니다.',
+        hasCode: true,
+        code: '{\n  "headers": [\n    { "source": "/pwa/sw.js",\n      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] },\n    { "source": "/pwa/manifest.webmanifest",\n      "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] }\n  ]\n}',
+        hasNote: true, note: 'vercel.json을 레포 루트에 두면 자동 적용됩니다. Vercel은 https와 인증서를 자동 처리하니 별도 설정은 필요 없습니다.'
+      },
+      {
+        no: '03', accent: '#4E7A16', who: 'Vercel',
+        title: '도메인 확정 (설치 전에!)',
+        body: 'Settings → Domains에서 커스텀 도메인(예: court.ignis.kr)을 연결합니다. 회원이 홈 화면에 설치한 뒤 도메인을 바꾸면 아이콘을 다시 설치해야 하므로, 공지 전에 최종 주소를 확정하세요.',
+        hasCode: false,
+        hasNote: true, note: 'vercel.app 기본 주소로 먼저 운영진 테스트 → 도메인 붙인 다음 전체 공지 순서가 안전합니다.'
+      },
+      {
+        no: '04', accent: '#D2601A', who: '디자인',
+        title: '앱 아이콘 3종 준비',
+        body: '512×512 원본에서 192·512·maskable(여백 20%) 3장을 만들어 /pwa/ 폴더에 올립니다. 다크 배경(#0F120F)에 라임 테니스볼 심볼이 지금 앱 톤과 맞습니다.',
+        hasCode: true,
+        code: '/pwa/icon-192.png\n/pwa/icon-512.png\n/pwa/icon-maskable-512.png',
+        hasNote: true, note: 'maskable은 안드로이드에서 원형·스퀘어로 잘리므로 심볼을 가운데 60% 안에 두세요.'
+      },
+      {
+        no: '05', accent: '#0E8C86', who: '개발',
+        title: 'manifest · service worker 연결',
+        body: 'index.html head에 아래를 추가하고 커밋하면 Vercel이 자동 재배포합니다. 등록되면 크롬 주소창에 설치 버튼이 나타납니다.',
+        hasCode: true, code: headSnippet, hasNote: false
+      },
+      {
+        no: '06', accent: '#4E7A16', who: '개발',
+        title: '설치 안내 배너',
+        body: '회원들이 스스로 설치하지 않으므로 앱 안 안내가 필요합니다. 안드로이드·크롬은 beforeinstallprompt로 "홈 화면에 추가" 버튼을, iOS 사파리는 공유 → 홈 화면에 추가 안내 그림을 보여줍니다.',
+        hasCode: true,
+        code: "let deferred;\naddEventListener('beforeinstallprompt', (e) => {\n  e.preventDefault(); deferred = e; showInstallBanner();\n});\ninstallBtn.onclick = () => deferred && deferred.prompt();",
+        hasNote: true, note: 'iOS는 설치를 코드로 띄울 수 없음 — 최초 로그인 후 1회 안내 시트를 보여주는 방식이 전환율이 가장 좋습니다.'
+      },
+      {
+        no: '07', accent: '#D2601A', who: '개발 + Supabase',
+        title: '푸시 알림 (대기승급 · 3번코트 확보 · 결산)',
+        body: 'Web Push용 VAPID 키를 만들고 회원별 구독 정보를 Supabase에 저장합니다. 발송은 Supabase Edge Function이 담당하는 편이 낫습니다 — Vercel 정적 배포에는 서버가 없고, 승급 로직이 이미 DB 쪽에 있기 때문입니다.',
+        hasCode: true,
+        code: 'create table push_subscriptions (\n  user_id uuid references auth.users on delete cascade,\n  endpoint text primary key,\n  p256dh text not null,\n  auth text not null,\n  created_at timestamptz default now()\n);',
+        hasNote: true, note: 'iOS는 홈 화면에 설치된 상태에서만 푸시가 옵니다(사파리 탭에서는 안 옴) — 설치 안내가 중요한 이유입니다.'
+      },
+      {
+        no: '08', accent: '#0E8C86', who: '운영',
+        title: '프리뷰 → 베타 → 전체 공지',
+        body: '브랜치를 푸시하면 Vercel이 프리뷰 URL을 만들어 줍니다. 여기서 운영진 3~5명이 새벽테니스 한 사이클(참석투표 → 마감 → 승급 → 결산)을 돌려보고, 문제 없으면 main에 머지 후 단톡방에 설치 안내와 함께 공지합니다.',
+        hasCode: false,
+        hasNote: true, note: '프리뷰 URL에서도 서비스워커가 등록되므로, 테스트 후에는 프리뷰로 설치한 아이콘은 삭제하도록 안내하세요.'
+      }
+    ];
+
+    const checklist = [
+      { text: 'GitHub 레포 생성 · service_role 키 미포함 확인' },
+      { text: 'vercel.json 추가 (sw.js no-cache)' },
+      { text: 'Vercel Import → 커스텀 도메인 연결' },
+      { text: '아이콘 3종 업로드 (192 / 512 / maskable)' },
+      { text: 'manifest + sw.js 배치, head 스니펫 추가' },
+      { text: '크롬 DevTools → Application → Manifest / Service Worker 통과' },
+      { text: 'iOS 사파리에서 홈 화면 추가 → 전체화면·상태바 색 확인' },
+      { text: 'VAPID 키 발급, push_subscriptions 테이블 생성, 테스트 발송' },
+      { text: '비행기 모드에서 앱 셸이 열리는지 확인' },
+      { text: '프리뷰 URL로 운영진 베타 1주 → main 머지 후 전체 공지' }
+    ];
+
+    const limits = [
+      { title: '실시간 데이터는 캐시하지 않습니다', body: '참석 인원·정원은 항상 네트워크에서 가져오도록 설정했습니다. 오프라인에서는 마지막 화면만 보이고, 투표는 온라인 복귀 후에 해야 합니다.' },
+      { title: 'iOS 푸시 조건', body: '홈 화면에 설치된 PWA에서만 동작하고 알림 권한을 사용자가 직접 허용해야 합니다. 미설치 회원에게는 기존 공지 방식이 여전히 필요합니다.' },
+      { title: '스토어 노출은 없습니다', body: 'App Store·Play 스토어 검색에는 나오지 않습니다. 스토어 등록이 필요해지면 같은 코드를 Capacitor로 감싸는 2단계로 넘어가면 됩니다.' }
+    ];
+
+    return { steps, checklist, limits };
+  }
+}
+</script>
+</body>
+</html>

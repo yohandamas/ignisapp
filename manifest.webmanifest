@@ -1,0 +1,17 @@
+{
+  "name": "이그니스 코트",
+  "short_name": "이그니스",
+  "description": "이그니스 테니스클럽 코트 참석 관리",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F120F",
+  "theme_color": "#0F120F",
+  "lang": "ko",
+  "icons": [
+    { "src": "/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

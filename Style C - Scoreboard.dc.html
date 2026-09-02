@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;}
+  a{color:#1B4DFF;text-decoration:none;}
+  a:hover{color:#0A2FB0;}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#DEDEDA;display:flex;flex-direction:column;align-items:center;padding:30px 16px 50px;gap:14px;font-family:'Noto Sans KR',sans-serif;box-sizing:border-box;">
+  <div style="font-size:11px;font-weight:900;letter-spacing:2px;color:#7A7A74;">STYLE C · SCOREBOARD</div>
+
+  <div style="width:390px;max-width:92vw;height:844px;border-radius:44px;background:#111;padding:12px;box-shadow:0 40px 90px -24px rgba(0,0,0,.45);box-sizing:border-box;">
+    <div style="width:100%;height:100%;border-radius:33px;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
+
+      <div style="padding:16px 22px 0;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;color:#111;">
+        <span>9:41</span><span>▮▮▯</span>
+      </div>
+
+      <div style="padding:12px 20px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #111;">
+        <div style="font-family:'Archivo Black',sans-serif;font-size:22px;letter-spacing:-.5px;color:#111;">IGNIS / 주간</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;background:#111;color:#F2FF5C;padding:5px 8px;">08.10–16</div>
+      </div>
+
+      <div style="display:flex;border-bottom:2px solid #111;">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+          <button onClick="{{d.onClick}}" style="flex:1;border:none;border-right:1px solid #111;background:{{d.bg}};padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:{{d.sub}};">{{d.label}}</span>
+            <span style="font-family:'Archivo Black',sans-serif;font-size:15px;color:{{d.color}};">{{d.date}}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+        <sc-for list="{{cards}}" as="c" hint-placeholder-count="2">
+          <div style="border-bottom:2px solid #111;padding:16px 20px 18px;display:flex;flex-direction:column;gap:12px;background:{{c.cardBg}};">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#5B5B55;">{{c.dateLabel}} / {{c.place}}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;background:{{c.pillBg}};color:{{c.pillColor}};padding:4px 8px;">{{c.state}}</span>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;">
+              <div>
+                <div style="font-family:'Archivo Black',sans-serif;font-size:36px;line-height:.92;color:#111;letter-spacing:-1.5px;">{{c.time}}</div>
+                <div style="font-size:14px;font-weight:800;color:#111;margin-top:5px;">{{c.court}} <span style="color:#7A7A74;">/</span> {{c.label}}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-family:'Archivo Black',sans-serif;font-size:32px;line-height:.9;color:{{c.scoreColor}};">{{c.count}}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#5B5B55;">/{{c.capacity}} · 대기{{c.waiting}}</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:2px;">
+              <sc-for list="{{c.slots}}" as="s" hint-placeholder-count="12">
+                <div style="flex:1;height:10px;background:{{s.bg}};border:1px solid #111;"></div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">
+              <sc-for list="{{c.names}}" as="n" hint-placeholder-count="6">
+                <span style="border:1.5px solid #111;background:{{n.bg}};color:#111;padding:3px 8px;font-size:11.5px;font-weight:700;">{{n.name}}{{n.suffix}}</span>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;gap:8px;">
+              <sc-for list="{{c.mainVotes}}" as="v" hint-placeholder-count="2">
+                <button onClick="{{v.onClick}}" style="flex:1;border:2px solid #111;background:{{v.bg}};color:{{v.color}};padding:13px 0;font-size:15px;font-weight:900;cursor:pointer;box-shadow:{{v.shadow}};">{{v.label}}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <sc-for list="{{c.subVotes}}" as="v" hint-placeholder-count="3">
+                <button onClick="{{v.onClick}}" style="flex:1;border:1.5px solid #111;background:{{v.bg}};color:{{v.color}};padding:8px 0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;cursor:pointer;">{{v.label}}</button>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;gap:6px;">
+              <button onClick="{{c.toggleCourt}}" style="flex:1;border:2px solid #111;background:{{c.courtBtnBg}};color:{{c.courtBtnColor}};padding:10px 0;font-size:12px;font-weight:900;cursor:pointer;">{{c.courtBtnLabel}}</button>
+              <button style="flex:1;border:2px solid #111;background:#fff;color:#111;padding:10px 0;font-size:12px;font-weight:900;cursor:pointer;">⇄ 회원 이동</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;border-top:2px solid #111;">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+          <button style="flex:1;border:none;border-right:1px solid #111;background:{{t.bg}};color:{{t.color}};padding:14px 0 18px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;">{{t.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:960}}">
+class Component extends DCLogic {
+  state = { dow: 0, votes: { c1: 'attend', c2: null }, court: false };
+
+  renderVals() {
+    const dowLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const dates = ['10', '11', '12', '13', '14', '15', '16'];
+    const days = dowLabels.map((label, i) => {
+      const on = i === this.state.dow;
+      return {
+        label: label.slice(0, 1) + label.slice(1, 3).toLowerCase(), date: dates[i],
+        bg: on ? '#F2FF5C' : '#fff',
+        color: '#111', sub: on ? '#4A5205' : '#7A7A74',
+        onClick: () => this.setState({ dow: i })
+      };
+    });
+
+    const mkVotes = (id) => {
+      const cur = this.state.votes[id];
+      const main = [
+        { key: 'attend', label: '참석', on: '#F2FF5C' },
+        { key: 'absent', label: '불참', on: '#FF6B4A' }
+      ].map(b => {
+        const sel = cur === b.key;
+        return {
+          label: b.label,
+          bg: sel ? b.on : '#fff', color: '#111',
+          shadow: sel ? '3px 3px 0 #111' : 'none',
+          onClick: () => this.setState(s => ({ votes: { ...s.votes, [id]: b.key } }))
+        };
+      });
+      const sub = ['늦참', '레슨', '연참'].map((label, i) => {
+        const key = ['late', 'lesson', 'series'][i];
+        const sel = cur === key;
+        return {
+          label,
+          bg: sel ? '#111' : '#fff', color: sel ? '#F2FF5C' : '#111',
+          onClick: () => this.setState(s => ({ votes: { ...s.votes, [id]: key } }))
+        };
+      });
+      return { main, sub };
+    };
+
+    const roster = (arr) => arr.map(p => ({
+      name: p[0], suffix: p[2] ? ` ${p[2]}` : '',
+      bg: p[1] === 'F' ? '#FFE1EA' : '#E4FFD9'
+    }));
+
+    const slots = (filledF, filledM, cap) => Array.from({ length: cap }, (_, i) => ({
+      bg: i < filledF ? '#FF9EBB' : i < filledF + filledM ? '#7CE05A' : '#fff'
+    }));
+
+    const v1 = mkVotes('c1'), v2 = mkVotes('c2');
+    const cap1 = this.state.court ? 12 : 8;
+    const cards = [
+      {
+        cardBg: '#fff', scoreColor: '#111',
+        dateLabel: `08.${dates[this.state.dow]}`, place: '유니온', time: '06:00', label: '새벽테니스',
+        court: this.state.court ? '3·4번 코트' : '4번 코트',
+        state: this.state.court ? '정원 12' : '정원 8',
+        pillBg: this.state.court ? '#F2FF5C' : '#111', pillColor: this.state.court ? '#111' : '#F2FF5C',
+        count: '6', capacity: `${cap1}`, waiting: '1',
+        slots: slots(2, 4, cap1),
+        names: roster([['박서연', 'F'], ['이지현', 'F'], ['김도훈', 'M'], ['최민석', 'M'], ['정우진', 'M'], ['한상혁', 'M', '늦참']]),
+        mainVotes: v1.main, subVotes: v1.sub,
+        courtBtnLabel: this.state.court ? '✅ 3번코트 확보됨' : '🎾 3번코트 확보',
+        courtBtnBg: this.state.court ? '#F2FF5C' : '#111',
+        courtBtnColor: this.state.court ? '#111' : '#F2FF5C',
+        toggleCourt: () => this.setState(s => ({ court: !s.court }))
+      },
+      {
+        cardBg: '#F7F7F3', scoreColor: '#111',
+        dateLabel: `08.${dates[this.state.dow]}`, place: '종합운동장', time: '20:00', label: '저녁조',
+        court: '2번 코트', state: '정원 12',
+        pillBg: '#111', pillColor: '#F2FF5C',
+        count: '6', capacity: '12', waiting: '2',
+        slots: slots(3, 3, 12),
+        names: roster([['오하늘', 'F'], ['신유진', 'F'], ['배소연', 'F'], ['유재현', 'M'], ['조민기', 'M', '늦참'], ['강태오', 'M']]),
+        mainVotes: v2.main, subVotes: v2.sub,
+        courtBtnLabel: '🕗 선마감', courtBtnBg: '#FF6B4A', courtBtnColor: '#111',
+        toggleCourt: () => {}
+      }
+    ];
+
+    return {
+      days, cards,
+      tabs: [
+        { label: '일정', bg: '#F2FF5C', color: '#111' },
+        { label: '알림', bg: '#fff', color: '#111' },
+        { label: 'MY', bg: '#fff', color: '#111' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

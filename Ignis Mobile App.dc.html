@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;}
+  a{color:#C8F169;text-decoration:none;}
+  a:hover{color:#DFF9A7;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:{{deskBg}};display:flex;flex-direction:column;align-items:center;padding:32px 16px 56px;gap:16px;font-family:'Noto Sans KR',sans-serif;box-sizing:border-box;">
+
+  <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:9px;align-items:center;">
+    <span style="font-size:11px;font-weight:900;letter-spacing:2px;color:{{deskInk}};">IGNIS · COURT NIGHT</span>
+    <button onClick="{{toggleAdmin}}" style="border:1px solid {{adminBtnBorder}};background:{{adminBtnBg}};color:{{adminBtnColor}};border-radius:999px;padding:6px 13px;font-size:11.5px;font-weight:800;cursor:pointer;">운영진 {{adminToggleLabel}}</button>
+    <button onClick="{{toggleDark}}" style="border:1px solid {{darkBtnBorder}};background:{{darkBtnBg}};color:{{darkBtnColor}};border-radius:999px;padding:6px 13px;font-size:11.5px;font-weight:800;cursor:pointer;">{{darkIcon}} {{darkToggleLabel}}</button>
+  </div>
+
+  <div style="width:390px;max-width:92vw;height:844px;border-radius:46px;background:{{bezel}};padding:12px;box-shadow:0 40px 90px -20px rgba(0,0,0,.55);box-sizing:border-box;">
+    <div style="width:100%;height:100%;border-radius:34px;background:{{t.bg}};display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;">
+
+      <div style="padding:16px 22px 0;display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:{{t.inkSoft}};flex-shrink:0;">
+        <span>9:41</span><span>▮▮▯</span>
+      </div>
+
+      <div style="padding:12px 20px 14px;display:flex;align-items:center;gap:11px;flex-shrink:0;">
+        <sc-if value="{{isDetail}}" hint-placeholder-val="{{false}}">
+          <button onClick="{{back}}" style="width:36px;height:36px;border-radius:12px;border:1px solid {{t.line}};background:transparent;color:{{t.ink}};font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
+        </sc-if>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:.92;letter-spacing:1px;color:{{t.ink}};">{{headerTitle}}</div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:1.1px;color:{{t.lime}};margin-top:4px;">{{headerSub}}</div>
+        </div>
+        <sc-if value="{{isToday}}" hint-placeholder-val="{{false}}">
+          <div style="width:38px;height:38px;border-radius:50%;border:1px solid {{t.line}};display:flex;align-items:center;justify-content:center;color:{{t.lime}};font-size:13px;font-weight:900;flex-shrink:0;">정</div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{isToday}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;gap:5px;padding:0 18px 14px;flex-shrink:0;">
+          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+            <button onClick="{{d.onClick}}" style="flex:1;border:1px solid {{d.border}};background:{{d.bg}};border-radius:14px;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+              <span style="font-size:9.5px;font-weight:800;letter-spacing:.5px;color:{{d.sub}};">{{d.label}}</span>
+              <span style="font-family:'Bebas Neue',sans-serif;font-size:21px;line-height:1;color:{{d.color}};">{{d.date}}</span>
+              <span style="width:4px;height:4px;border-radius:50%;background:{{d.dot}};"></span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="flex:1;overflow-y:auto;padding:0 18px 20px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;animation:fadeIn .25s ease;">
+
+        <sc-if value="{{isToday}}" hint-placeholder-val="{{false}}">
+          <sc-for list="{{todayEvents}}" as="c" hint-placeholder-count="2">
+            <div onClick="{{c.openMe}}" style="border:1px solid {{t.line}};border-left:4px solid {{c.venueColor}};border-radius:26px;background:{{t.card}};padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;letter-spacing:.5px;color:{{t.ink}};">{{c.dateBig}}</span>
+                  <span style="font-size:11px;font-weight:900;letter-spacing:.6px;color:{{c.dayTypeColor}};border:1px solid {{c.dayTypeLine}};padding:3px 9px;border-radius:999px;">{{c.dowKo}} · {{c.dayTypeLabel}}</span>
+                </div>
+                <span style="font-size:10px;font-weight:900;letter-spacing:.6px;color:{{c.stateColor}};border:1px solid {{c.stateColor}};padding:3px 8px;border-radius:999px;white-space:nowrap;">{{c.stateLabel}}</span>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:12.5px;font-weight:900;background:{{c.venueSoft}};color:{{c.venueColor}};border:1px solid {{c.venueLine}};padding:5px 11px;border-radius:9px;">📍 {{c.location}}</span>
+                <span style="font-size:12.5px;font-weight:800;color:{{c.venueColor}};">{{c.courts}}</span>
+              </div>
+
+              <div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:46px;line-height:.86;letter-spacing:1px;color:{{t.ink}};">{{c.time}}</div>
+              </div>
+
+              <div style="display:flex;align-items:baseline;gap:8px;">
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:29px;line-height:1;color:{{t.ink}};">{{c.goingCount}}</span>
+                <span style="font-size:12px;font-weight:700;color:{{t.inkSoft}};">/ {{c.capacity}}명 · 여{{c.femaleCount}} 남{{c.maleCount}} · 대기 {{c.waitingCount}}</span>
+              </div>
+              <div style="height:3px;background:{{t.line}};border-radius:2px;overflow:hidden;display:flex;">
+                <div style="height:100%;background:{{t.female.color}};width:{{c.femalePct}};"></div>
+                <div style="height:100%;background:{{t.male.color}};width:{{c.malePct}};"></div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <sc-for list="{{c.genderBoxes}}" as="g" hint-placeholder-count="2">
+                  <div style="border:1px solid {{g.line}};background:{{g.bg}};border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:7px;">
+                    <div style="font-size:10.5px;font-weight:900;letter-spacing:.8px;color:{{g.color}};">{{g.title}}</div>
+                    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;">
+                      <sc-for list="{{g.people}}" as="n" hint-placeholder-count="6">
+                        <span style="color:{{g.color}};font-size:11px;font-weight:800;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{n.name}}</span>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <sc-if value="{{c.hasWaiting}}" hint-placeholder-val="{{false}}">
+                <div style="border:1px dashed {{t.goldLine}};border-radius:12px;padding:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span style="font-size:10px;font-weight:900;letter-spacing:.8px;color:{{t.gold}};">대기 {{c.waitingCount}}</span>
+                  <sc-for list="{{c.waitingChips}}" as="w" hint-placeholder-count="2">
+                    <span style="font-size:11px;font-weight:800;color:{{t.gold}};">{{w.no}}. {{w.name}} <span style="color:{{t.inkFaint}};font-weight:700;">{{w.tag}}</span></span>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{c.court3Included}}" hint-placeholder-val="{{false}}">
+                <div style="font-size:11px;font-weight:700;color:{{c.court3Color}};border-left:2px solid {{c.court3Color}};padding-left:9px;line-height:1.5;">{{c.court3Label}}</div>
+              </sc-if>
+
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+                <sc-for list="{{c.mainVotes}}" as="v" hint-placeholder-count="2">
+                  <button onClick="{{v.onClick}}" style="border:1px solid {{v.border}};background:{{v.bg}};color:{{v.color}};border-radius:11px;height:40px;font-size:14px;font-weight:900;letter-spacing:.5px;cursor:pointer;">{{v.label}}</button>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+                <sc-for list="{{c.subVotes}}" as="v" hint-placeholder-count="3">
+                  <button onClick="{{v.onClick}}" style="border:1px solid {{v.border}};background:{{v.bg}};color:{{v.color}};border-radius:11px;height:40px;font-size:12.5px;font-weight:800;cursor:pointer;">{{v.label}}</button>
+                </sc-for>
+              </div>
+
+              <sc-if value="{{admin}}" hint-placeholder-val="{{false}}">
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;border-top:1px solid {{t.line}};padding-top:12px;">
+                  <sc-if value="{{c.court3Included}}" hint-placeholder-val="{{false}}">
+                    <button onClick="{{c.toggleCourt3}}" style="border:none;background:{{c.court3BtnBg}};color:{{c.court3BtnColor}};border-radius:11px;height:40px;font-size:11.5px;font-weight:900;cursor:pointer;">{{c.court3BtnShort}}</button>
+                  </sc-if>
+                  <button onClick="{{c.openMe}}" style="border:none;background:{{t.chip}};color:{{t.lime}};border-radius:11px;height:40px;font-size:11.5px;font-weight:900;cursor:pointer;">⇄ 회원 이동</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{isDetail}}" hint-placeholder-val="{{false}}">
+          <div style="border:1px solid {{t.line}};border-left:4px solid {{selectedEvent.venueColor}};border-radius:26px;background:{{t.card}};padding:18px;display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:{{t.ink}};">{{selectedEvent.dateBig}}</span>
+                <span style="font-size:11px;font-weight:900;color:{{selectedEvent.dayTypeColor}};border:1px solid {{selectedEvent.dayTypeLine}};padding:3px 9px;border-radius:999px;">{{selectedEvent.dowKo}} · {{selectedEvent.dayTypeLabel}}</span>
+              </div>
+              <span style="font-size:10px;font-weight:900;color:{{selectedEvent.stateColor}};border:1px solid {{selectedEvent.stateColor}};padding:3px 8px;border-radius:999px;">{{selectedEvent.stateLabel}}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:13px;font-weight:900;background:{{selectedEvent.venueSoft}};color:{{selectedEvent.venueColor}};border:1px solid {{selectedEvent.venueLine}};padding:6px 12px;border-radius:9px;">📍 {{selectedEvent.location}}</span>
+              <span style="font-size:13px;font-weight:800;color:{{selectedEvent.venueColor}};">{{selectedEvent.courts}}</span>
+            </div>
+            <div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:.85;letter-spacing:1px;color:{{t.ink}};">{{selectedEvent.time}}</div>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <span style="font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;color:{{t.ink}};">{{selectedEvent.goingCount}}</span>
+              <span style="font-size:12px;font-weight:700;color:{{t.inkSoft}};">/ {{selectedEvent.capacity}}명 · 대기 {{selectedEvent.waitingCount}}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+              <sc-for list="{{selectedEvent.mainVotes}}" as="v" hint-placeholder-count="2">
+                <button onClick="{{v.onClick}}" style="border:1px solid {{v.border}};background:{{v.bg}};color:{{v.color}};border-radius:11px;height:40px;font-size:14px;font-weight:900;cursor:pointer;">{{v.label}}</button>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+              <sc-for list="{{selectedEvent.subVotes}}" as="v" hint-placeholder-count="3">
+                <button onClick="{{v.onClick}}" style="border:1px solid {{v.border}};background:{{v.bg}};color:{{v.color}};border-radius:11px;height:40px;font-size:12.5px;font-weight:800;cursor:pointer;">{{v.label}}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{admin}}" hint-placeholder-val="{{false}}">
+            <div style="border:1px dashed {{t.rose}};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+              <div style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:{{t.rose}};">ADMIN TOOLS</div>
+              <sc-if value="{{selectedEvent.court3Included}}" hint-placeholder-val="{{false}}">
+                <button onClick="{{selectedEvent.toggleCourt3}}" style="border:none;background:{{selectedEvent.court3BtnBg}};color:{{selectedEvent.court3BtnColor}};border-radius:11px;height:40px;font-size:12.5px;font-weight:900;cursor:pointer;">{{selectedEvent.court3BtnLabel}}</button>
+              </sc-if>
+              <button onClick="{{selectedEvent.toggleClose}}" style="border:none;background:{{selectedEvent.closeBtnBg}};color:{{selectedEvent.closeBtnColor}};border-radius:11px;height:40px;font-size:12.5px;font-weight:900;cursor:pointer;">{{selectedEvent.closeBtnLabel}}</button>
+              <button onClick="{{selectedEvent.forcePromote}}" style="border:none;background:{{t.lime}};color:{{t.bg}};border-radius:11px;height:40px;font-size:12.5px;font-weight:900;cursor:pointer;">{{selectedEvent.promoteBtnLabel}}</button>
+            </div>
+          </sc-if>
+
+          <sc-for list="{{selectedEvent.rosterGroups}}" as="g" hint-placeholder-count="4">
+            <div style="border:1px solid {{t.line}};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:9px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:{{g.titleColor}};">{{g.title}}</span>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:20px;line-height:1;color:{{g.titleColor}};">{{g.count}}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <sc-for list="{{g.people}}" as="p" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:9px;">
+                    <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:{{t.inkFaint}};width:15px;flex-shrink:0;">{{p.no}}</span>
+                    <span style="font-size:14px;font-weight:800;color:{{p.nameColor}};flex:1;min-width:0;">{{p.name}}</span>
+                    <span style="font-size:10px;font-weight:800;color:{{p.tagColor}};border:1px solid {{p.tagColor}};padding:2px 7px;border-radius:6px;flex-shrink:0;">{{p.tag}}</span>
+                    <sc-if value="{{admin}}" hint-placeholder-val="{{false}}">
+                      <button onClick="{{p.onMove}}" style="border:none;background:{{t.chip}};color:{{t.lime}};border-radius:8px;padding:5px 9px;font-size:11px;font-weight:900;cursor:pointer;flex-shrink:0;">{{p.moveLabel}}</button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{g.empty}}" hint-placeholder-val="{{false}}">
+                  <div style="font-size:12.5px;color:{{t.inkFaint}};">아직 없어요</div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="border:1px solid {{t.line}};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:11px;">
+            <div style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:{{t.inkSoft}};">COMMENTS</div>
+            <sc-for list="{{comments}}" as="cm" hint-placeholder-count="2">
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <div style="display:flex;gap:7px;align-items:baseline;">
+                  <span style="font-size:12.5px;font-weight:900;color:{{cm.nameColor}};">{{cm.author}}</span>
+                  <span style="font-size:10px;color:{{t.inkFaint}};">{{cm.time}}</span>
+                </div>
+                <div style="font-size:13px;color:{{t.ink}};line-height:1.55;">{{cm.text}}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isNotif}}" hint-placeholder-val="{{false}}">
+          <sc-for list="{{notifications}}" as="n" hint-placeholder-count="4">
+            <div onClick="{{n.onClick}}" style="border:1px solid {{n.border}};border-radius:20px;padding:14px;display:flex;gap:11px;cursor:pointer;background:{{n.bg}};">
+              <div style="width:6px;height:6px;border-radius:50%;background:{{n.dotColor}};margin-top:7px;flex-shrink:0;"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13.5px;font-weight:900;color:{{t.ink}};">{{n.title}}</div>
+                <div style="font-size:12.5px;color:{{t.inkSoft}};margin-top:4px;line-height:1.55;">{{n.body}}</div>
+                <div style="font-size:10.5px;font-weight:700;letter-spacing:.6px;color:{{t.inkFaint}};margin-top:6px;">{{n.time}}</div>
+              </div>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{isSettings}}" hint-placeholder-val="{{false}}">
+          <div style="border:1px solid {{t.line}};border-radius:22px;padding:18px;display:flex;align-items:center;gap:13px;">
+            <div style="width:52px;height:52px;border-radius:50%;border:1px solid {{t.lime}};color:{{t.lime}};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:22px;flex-shrink:0;">정</div>
+            <div>
+              <div style="font-size:17px;font-weight:900;color:{{t.ink}};">정우진</div>
+              <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{t.inkSoft}};margin-top:3px;">관내 · 남 · 운영진</div>
+            </div>
+          </div>
+
+          <div style="border:1px solid {{t.line}};border-radius:22px;padding:4px 16px;display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid {{t.line}};">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:{{t.ink}};">라이트 모드</div>
+                <div style="font-size:11.5px;color:{{t.inkSoft}};margin-top:2px;">밝은 배경으로 보기</div>
+              </div>
+              <button onClick="{{toggleDark}}" style="width:48px;height:28px;border-radius:999px;border:1px solid {{t.line}};background:{{lightSwitchBg}};position:relative;cursor:pointer;flex-shrink:0;">
+                <div style="width:20px;height:20px;border-radius:50%;background:{{lightKnob}};position:absolute;top:3px;left:{{lightSwitchLeft}};transition:left .15s ease;"></div>
+              </button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:{{t.ink}};">운영진 모드</div>
+                <div style="font-size:11.5px;color:{{t.inkSoft}};margin-top:2px;">코트 확보·회원 이동 도구 표시</div>
+              </div>
+              <button onClick="{{toggleAdmin}}" style="width:48px;height:28px;border-radius:999px;border:1px solid {{t.line}};background:{{adminSwitchBg}};position:relative;cursor:pointer;flex-shrink:0;">
+                <div style="width:20px;height:20px;border-radius:50%;background:{{adminKnob}};position:absolute;top:3px;left:{{adminSwitchLeft}};transition:left .15s ease;"></div>
+              </button>
+            </div>
+          </div>
+
+          <div style="border:1px solid {{t.line}};border-radius:22px;padding:4px 16px;display:flex;flex-direction:column;">
+            <sc-for list="{{guideLinks}}" as="g" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid {{t.line}};">
+                <span style="font-size:13.5px;font-weight:700;color:{{t.ink}};">{{g.label}}</span>
+                <span style="font-size:13px;color:{{t.inkFaint}};">›</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <button style="border:1px solid {{t.rose}};background:transparent;color:{{t.rose}};border-radius:999px;padding:13px;font-size:13px;font-weight:900;letter-spacing:.5px;cursor:pointer;">로그아웃</button>
+        </sc-if>
+
+      </div>
+
+      <div style="display:flex;border-top:1px solid {{t.line}};background:{{t.tabBg}};flex-shrink:0;">
+        <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="3">
+          <button onClick="{{tab.onClick}}" style="flex:1;border:none;background:transparent;padding:13px 0 17px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;position:relative;">
+            <span style="font-size:11px;font-weight:900;letter-spacing:1.1px;color:{{tab.color}};">{{tab.label}}</span>
+            <span style="width:16px;height:2px;background:{{tab.bar}};border-radius:2px;"></span>
+            <sc-if value="{{tab.hasBadge}}" hint-placeholder-val="{{false}}">
+              <span style="position:absolute;top:8px;right:24%;background:{{t.rose}};color:{{t.bg}};font-size:9px;font-weight:900;border-radius:999px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;">{{tab.badgeCount}}</span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;initialScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;today&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;today&quot;,&quot;detail&quot;,&quot;notifications&quot;,&quot;settings&quot;]},&quot;initialLight&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;initialAdmin&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = {
+    screen: this.props.initialScreen ?? 'today',
+    selectedEventId: 'e1',
+    dow: 0,
+    light: this.props.initialLight ?? false,
+    admin: this.props.initialAdmin ?? true,
+    events: [
+      {
+        id: 'e1', dow: 0, label: '새벽테니스', location: '유니온', courtsBase: '4번 코트', time: '06:00–08:00',
+        court3: { included: true, confirmed: false }, capacityUnconfirmed: 8, capacityConfirmed: 12, closed: false,
+        people: [
+          { name: '박서연', g: 'F', status: 'attend', tag: '관내' },
+          { name: '이지현', g: 'F', status: 'attend', tag: '관내' },
+          { name: '김도훈', g: 'M', status: 'attend', tag: '관내' },
+          { name: '최민석', g: 'M', status: 'attend', tag: '관내' },
+          { name: '정우진', g: 'M', status: 'attend', tag: '관내' },
+          { name: '한상혁', g: 'M', status: 'late', tag: '관내' },
+          { name: '오세훈', g: 'M', status: 'waiting', tag: '관외' },
+          { name: '홍진경', g: 'F', status: 'absent', tag: '관내' }
+        ],
+        myVote: 'attend', promoted: false
+      },
+      {
+        id: 'e2', dow: 0, label: '저녁조', location: '종합운동장', courtsBase: '2번 코트', time: '20:00–22:00',
+        court3: { included: false }, capacity: 12, closed: false,
+        people: [
+          { name: '오하늘', g: 'F', status: 'attend', tag: '관내' },
+          { name: '신유진', g: 'F', status: 'attend', tag: '관내' },
+          { name: '배소연', g: 'F', status: 'attend', tag: '관외' },
+          { name: '유재현', g: 'M', status: 'attend', tag: '관내' },
+          { name: '조민기', g: 'M', status: 'late', tag: '관내' },
+          { name: '강태오', g: 'M', status: 'attend', tag: '관내' },
+          { name: '임수빈', g: 'F', status: 'waiting', tag: '관내' },
+          { name: '문가영', g: 'F', status: 'waiting', tag: '관외' }
+        ],
+        myVote: null, promoted: false
+      },
+      {
+        id: 'e3', dow: 1, label: '새벽테니스', location: '유니온', courtsBase: '4번 코트', time: '06:00–08:00',
+        court3: { included: true, confirmed: true }, capacityUnconfirmed: 8, capacityConfirmed: 12, closed: false,
+        people: [
+          { name: '윤서아', g: 'F', status: 'attend', tag: '관내' },
+          { name: '강지민', g: 'F', status: 'attend', tag: '관내' },
+          { name: '임태호', g: 'M', status: 'attend', tag: '관내' },
+          { name: '서준영', g: 'M', status: 'attend', tag: '관내' },
+          { name: '백승민', g: 'M', status: 'lesson', tag: '관내' }
+        ],
+        myVote: 'attend', promoted: false
+      },
+      {
+        id: 'e4', dow: 2, label: '저녁조', location: '종합운동장', courtsBase: '2번 코트', time: '20:00–22:00',
+        court3: { included: false }, capacity: 12, closed: false,
+        people: [
+          { name: '한소율', g: 'F', status: 'attend', tag: '관내' },
+          { name: '전예은', g: 'F', status: 'attend', tag: '관내' },
+          { name: '노현우', g: 'M', status: 'attend', tag: '관내' },
+          { name: '장민혁', g: 'M', status: 'attend', tag: '관내' },
+          { name: '구자은', g: 'F', status: 'waiting', tag: '관외' }
+        ],
+        myVote: null, promoted: false
+      },
+      {
+        id: 'e5', dow: 3, label: '새벽테니스', location: '유니온', courtsBase: '4번 코트', time: '06:00–08:00',
+        court3: { included: true, confirmed: false }, capacityUnconfirmed: 8, capacityConfirmed: 12, closed: false,
+        people: [
+          { name: '류지안', g: 'F', status: 'attend', tag: '관내' },
+          { name: '홍성민', g: 'M', status: 'attend', tag: '관내' },
+          { name: '배진우', g: 'M', status: 'attend', tag: '관내' }
+        ],
+        myVote: null, promoted: false
+      },
+      {
+        id: 'e6', dow: 4, label: '유니온야간', location: '유니온', courtsBase: '4번 코트', time: '20:00–22:00',
+        court3: { included: true, confirmed: false }, capacityUnconfirmed: 8, capacityConfirmed: 12, closed: false,
+        people: [
+          { name: '서지우', g: 'F', status: 'attend', tag: '관내' },
+          { name: '민아름', g: 'F', status: 'attend', tag: '관내' },
+          { name: '권도영', g: 'M', status: 'attend', tag: '관내' },
+          { name: '차현수', g: 'M', status: 'attend', tag: '관내' },
+          { name: '윤태준', g: 'M', status: 'waiting', tag: '관내' }
+        ],
+        myVote: 'attend', promoted: false
+      },
+      {
+        id: 'e7', dow: 5, label: '오전 1부', location: '유니온', courtsBase: '4번 코트', time: '10:00–12:00',
+        court3: { included: true, confirmed: false }, capacityUnconfirmed: 12, capacityConfirmed: 18, closed: false,
+        people: [
+          { name: '김하은', g: 'F', status: 'attend', tag: '관내' },
+          { name: '오소민', g: 'F', status: 'attend', tag: '관내' },
+          { name: '백승아', g: 'F', status: 'attend', tag: '관외' },
+          { name: '이건우', g: 'M', status: 'attend', tag: '관내' },
+          { name: '정재훈', g: 'M', status: 'attend', tag: '관내' },
+          { name: '박시우', g: 'M', status: 'attend', tag: '관내' },
+          { name: '최윤성', g: 'M', status: 'late', tag: '관내' },
+          { name: '심유나', g: 'F', status: 'waiting', tag: '관내' }
+        ],
+        myVote: 'attend', promoted: false
+      },
+      {
+        id: 'e8', dow: 6, label: '저녁조', location: '종합운동장', courtsBase: '2번 코트', time: '18:00–20:00',
+        court3: { included: false }, capacity: 12, closed: true,
+        people: [
+          { name: '송지원', g: 'F', status: 'attend', tag: '관내' },
+          { name: '나은채', g: 'F', status: 'attend', tag: '관내' },
+          { name: '탁현준', g: 'M', status: 'attend', tag: '관내' },
+          { name: '윤재호', g: 'M', status: 'attend', tag: '관내' }
+        ],
+        myVote: null, promoted: false
+      }
+    ],
+    notifications: [
+      { id: 'n1', eventId: 'e2', type: 'promote', title: '대기 승급', body: '저녁조(종합운동장) 대기 중이던 임수빈님이 참석으로 승급되었습니다', time: '10분 전', read: false },
+      { id: 'n2', eventId: 'e1', type: 'court3', title: '3번코트 확보', body: '새벽테니스 정원이 8명 → 12명으로 확대, 4명 추가 참석 가능', time: '32분 전', read: false },
+      { id: 'n3', eventId: null, type: 'summary', title: '오늘의 결산보고', body: '새벽테니스 6명 · 저녁조 6명 참석, 비상 일정 없음', time: '어제', read: true },
+      { id: 'n4', eventId: null, type: 'warning', title: '당일취소 경고', body: '문가영님 당일취소 누적 2회 (관리자·본인만 열람)', time: '2시간 전', read: false }
+    ],
+    commentsByEvent: {
+      e1: [
+        { author: 'AI 관리자', text: '남자 4명·여자 2명, 남복 1코트로 진행하시면 좋을 것 같아요. 즐테하세요!', time: '오늘 05:00' },
+        { author: '정우진', text: '3번코트 확보되면 알려주세요~', time: '오늘 05:20' }
+      ],
+      e2: [
+        { author: 'AI 관리자', text: '대기 인원이 있어 총합 8점 게임(빠른진행) 추천드려요, 의무는 아니에요', time: '오늘 09:00' },
+        { author: '조민기', text: '오늘 좀 늦을 것 같아요, 5분만요!', time: '오늘 09:10' }
+      ]
+    }
+  };
+
+  navigate(screen, eventId) {
+    this.setState(s => ({ screen, selectedEventId: eventId || s.selectedEventId }));
+  }
+  setVote(eventId, status) {
+    this.setState(s => ({ events: s.events.map(e => e.id === eventId ? { ...e, myVote: status } : e) }));
+  }
+  toggleCourt3(eventId) {
+    this.setState(s => ({ events: s.events.map(e => e.id === eventId ? { ...e, court3: { ...e.court3, confirmed: !e.court3.confirmed } } : e) }));
+  }
+  toggleClose(eventId) {
+    this.setState(s => ({ events: s.events.map(e => e.id === eventId ? { ...e, closed: !e.closed } : e) }));
+  }
+  forcePromote(eventId) {
+    this.setState(s => ({
+      events: s.events.map(e => {
+        if (e.id !== eventId) return e;
+        let done = false;
+        return {
+          ...e, promoted: true,
+          people: e.people.map(p => {
+            if (!done && p.status === 'waiting') { done = true; return { ...p, status: 'attend' }; }
+            return p;
+          })
+        };
+      })
+    }));
+  }
+  movePerson(eventId, name) {
+    const order = ['attend', 'waiting', 'absent'];
+    this.setState(s => ({
+      events: s.events.map(e => e.id !== eventId ? e : {
+        ...e,
+        people: e.people.map(p => {
+          if (p.name !== name) return p;
+          const idx = order.indexOf(p.status);
+          return { ...p, status: order[(idx < 0 ? 0 : idx + 1) % order.length] };
+        })
+      })
+    }));
+  }
+  markRead(id) {
+    this.setState(s => ({ notifications: s.notifications.map(n => n.id === id ? { ...n, read: true } : n) }));
+  }
+
+  computeEvent(e, t, dateLabel) {
+    const c3 = !!(e.court3 && e.court3.included);
+    const c3ok = c3 && e.court3.confirmed;
+    const capacity = c3 ? (c3ok ? e.capacityConfirmed : e.capacityUnconfirmed) : e.capacity;
+    const going = e.people.filter(p => ['attend', 'late', 'lesson'].indexOf(p.status) >= 0);
+    const waiting = e.people.filter(p => p.status === 'waiting');
+    const absent = e.people.filter(p => p.status === 'absent');
+    const femaleCount = going.filter(p => p.g === 'F').length;
+    const maleCount = going.filter(p => p.g === 'M').length;
+    const label = { attend: '참석', late: '늦참', lesson: '레슨', waiting: '대기', absent: '불참' };
+    const mkPerson = (p, i) => ({
+      name: p.name, no: `${i + 1}`,
+      nameColor: p.g === 'F' ? t.female.color : t.male.color,
+      tag: p.status === 'attend' ? p.tag : `${p.tag}·${label[p.status]}`,
+      tagColor: p.status === 'attend' ? t.inkFaint : t.gold,
+      moveLabel: ['attend', 'late', 'lesson'].indexOf(p.status) >= 0 ? '→대기' : p.status === 'waiting' ? '→불참' : '→참석',
+      onMove: () => this.movePerson(e.id, p.name)
+    });
+    const mkMain = (key, lbl, on) => {
+      const sel = e.myVote === key;
+      return {
+        label: lbl, bg: sel ? on : 'transparent', color: sel ? t.bg : t.ink, border: sel ? on : t.line,
+        onClick: (ev) => { ev.stopPropagation(); this.setVote(e.id, key); }
+      };
+    };
+    const mkSub = (key, lbl) => {
+      const sel = e.myVote === key;
+      return {
+        label: lbl, bg: sel ? t.chip : 'transparent', color: sel ? t.lime : t.inkSoft, border: sel ? t.lime : t.line,
+        onClick: (ev) => { ev.stopPropagation(); this.setVote(e.id, key); }
+      };
+    };
+    const v = t.venue[e.location] || { color: t.lime, line: t.line, soft: t.chip };
+    const weekend = e.dow >= 5;
+    return {
+      ...e,
+      dateLabel,
+      venueColor: v.color, venueSoft: v.soft, venueLine: v.line,
+      dayTypeLabel: weekend ? '주말' : '평일',
+      dayTypeColor: weekend ? t.gold : t.lime,
+      dayTypeLine: weekend ? t.goldLine : t.limeLine,
+      courts: c3ok ? '3·4번 코트' : e.courtsBase,
+      capacity, goingCount: `${going.length}`, femaleCount, maleCount, waitingCount: waiting.length,
+      femalePct: `${Math.min(100, Math.round(femaleCount / capacity * 100))}%`,
+      malePct: `${Math.min(100, Math.round(maleCount / capacity * 100))}%`,
+      stateLabel: e.closed ? '마감' : going.length >= capacity ? '정원마감' : `정원 ${capacity}`,
+      stateColor: e.closed || going.length >= capacity ? t.rose : t.gold,
+      genderBoxes: [
+        { key: 'F', title: `여자 ${femaleCount}`, color: t.female.color, line: t.female.line, bg: t.female.soft, count: femaleCount, people: going.filter(p => p.g === 'F').map(p => ({ name: p.name })) },
+        { key: 'M', title: `남자 ${maleCount}`, color: t.male.color, line: t.male.line, bg: t.male.soft, count: maleCount, people: going.filter(p => p.g === 'M').map(p => ({ name: p.name })) }
+      ].sort((a, b) => b.count - a.count),
+      waitingChips: waiting.map((p, i) => ({ name: p.name, no: `${i + 1}`, tag: p.tag })),
+      hasWaiting: waiting.length > 0,
+      rosterGroups: [
+        { title: '여자 참석', count: femaleCount, order: femaleCount >= maleCount ? 0 : 1, titleColor: t.female.color, people: going.filter(p => p.g === 'F').map(mkPerson), empty: femaleCount === 0 },
+        { title: '남자 참석', count: maleCount, order: maleCount > femaleCount ? 0 : 1, titleColor: t.male.color, people: going.filter(p => p.g === 'M').map(mkPerson), empty: maleCount === 0 },
+        { title: '대기', count: waiting.length, order: 2, titleColor: t.gold, people: waiting.map(mkPerson), empty: waiting.length === 0 },
+        { title: '불참', count: absent.length, order: 3, titleColor: t.inkSoft, people: absent.map(mkPerson), empty: absent.length === 0 }
+      ].sort((a, b) => a.order - b.order),
+      mainVotes: [mkMain('attend', '참석', t.lime), mkMain('absent', '불참', t.rose)],
+      subVotes: [mkSub('late', '늦참'), mkSub('lesson', '레슨'), mkSub('series', '연참')],
+      court3Included: c3,
+      court3Label: c3ok ? `3번코트 확보 · 정원 ${e.capacityConfirmed}명으로 확대` : `3번코트 미확보 · 정원 ${e.capacityUnconfirmed}명 (확보시 자동 확대)`,
+      court3Color: c3ok ? t.lime : t.gold,
+      court3BtnShort: c3ok ? '✅ 3번코트 확보됨' : '🎾 3번코트 확보',
+      court3BtnLabel: c3ok ? '✅ 3번코트 확보 취소' : '🎾 3번코트 확보 확인',
+      court3BtnBg: c3ok ? t.lime : t.chip,
+      court3BtnColor: c3ok ? t.bg : t.lime,
+      closeBtnLabel: e.closed ? '🔓 마감 해제' : '🚫 선마감',
+      closeBtnBg: e.closed ? t.chip : t.roseSoft,
+      closeBtnColor: e.closed ? t.lime : t.rose,
+      promoteBtnLabel: e.promoted ? '✅ 자동승급 실행됨' : '⚡ 지금 자동승급 실행',
+      openMe: () => this.navigate('detail', e.id),
+      toggleCourt3: (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); this.toggleCourt3(e.id); },
+      toggleClose: () => this.toggleClose(e.id),
+      forcePromote: () => this.forcePromote(e.id)
+    };
+  }
+
+  renderVals() {
+    const light = this.state.light;
+    const t = light ? {
+      bg: '#F7F7F3', card: '#FFFFFF', tabBg: '#FFFFFF', chip: '#ECF2DD',
+      ink: '#14170F', inkSoft: '#5C6553', inkFaint: '#9AA290', line: '#DDE2D4',
+      lime: '#4E7A16', limeLine: '#B9D98A', gold: '#8A6A12', goldLine: '#E0CD9A',
+      rose: '#B4485F', roseLine: '#E7B7C2', roseSoft: '#F7E5E9',
+      venue: { '유니온': { color: '#D2601A', line: '#F0C9A8', soft: '#FBEEE2' }, '종합운동장': { color: '#0E8C86', line: '#A8DFDA', soft: '#E3F5F3' } },
+      male: { color: '#2C6E9B', line: '#BCD8E9', soft: '#E7F1F8' },
+      female: { color: '#C0567A', line: '#EDBFCE', soft: '#FAE8EE' }
+    } : {
+      bg: '#0F120F', card: '#141814', tabBg: '#0B0D0B', chip: '#232A20',
+      ink: '#F2F5EE', inkSoft: '#8A9680', inkFaint: '#5E6A55', line: '#232A20',
+      lime: '#C8F169', limeLine: '#2F3A28', gold: '#D9B872', goldLine: '#3E3624',
+      rose: '#E9A0B8', roseLine: '#4A2F39', roseSoft: '#33222A',
+      venue: { '유니온': { color: '#FF8B36', line: '#4A2E17', soft: '#2B1B0F' }, '종합운동장': { color: '#5FD8CE', line: '#1B3F3D', soft: '#102725' } },
+      male: { color: '#8FD6FF', line: '#22394A', soft: '#122130' },
+      female: { color: '#F5A6C0', line: '#4A2F39', soft: '#2C1C24' }
+    };
+
+    const dowLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const dowKo = ['월', '화', '수', '목', '금', '토', '일'];
+    const dates = ['10', '11', '12', '13', '14', '15', '16'];
+    const events = this.state.events.map(e => {
+      const c = this.computeEvent(e, t, `8월 ${dates[e.dow]}일 (${dowKo[e.dow]})`);
+      return { ...c, dateBig: `8.${dates[e.dow]}`, dowKo: dowKo[e.dow] };
+    });
+    const todayEvents = events.filter(e => e.dow === this.state.dow);
+    const days = dowLabels.map((lbl, i) => {
+      const on = i === this.state.dow;
+      const has = events.some(e => e.dow === i);
+      const weekend = i >= 5;
+      const accent = weekend ? t.gold : t.lime;
+      return {
+        label: lbl, date: dates[i],
+        bg: on ? accent : 'transparent',
+        border: on ? accent : (weekend ? t.goldLine : t.line),
+        color: on ? t.bg : (weekend ? t.gold : t.ink),
+        sub: on ? t.bg : (weekend ? t.gold : t.inkSoft),
+        dot: on ? t.bg : (has ? accent : t.line),
+        onClick: () => this.setState({ dow: i })
+      };
+    });
+
+    const selectedEvent = events.find(e => e.id === this.state.selectedEventId) || events[0];
+    const admin = this.state.admin;
+    const notifications = this.state.notifications
+      .filter(n => admin || n.type !== 'warning')
+      .map(n => ({
+        ...n,
+        dotColor: n.read ? 'transparent' : t.rose,
+        border: n.read ? t.line : t.limeLine,
+        bg: n.read ? 'transparent' : t.card,
+        onClick: () => { this.markRead(n.id); if (n.eventId) this.navigate('detail', n.eventId); }
+      }));
+    const unread = notifications.filter(n => !n.read).length;
+    const comments = (this.state.commentsByEvent[this.state.selectedEventId] || []).map(cm => ({
+      ...cm, nameColor: cm.author.indexOf('AI') >= 0 ? t.gold : t.ink
+    }));
+
+    const screen = this.state.screen;
+    const isToday = screen === 'today', isDetail = screen === 'detail', isNotif = screen === 'notifications', isSettings = screen === 'settings';
+    const headerTitle = isToday ? '이그니스 코트' : isDetail ? selectedEvent.location : isNotif ? '알림' : '내 정보';
+    const headerSub = isToday ? `8월 10일 – 16일 · WEEK 33` : isDetail ? `${selectedEvent.dateLabel} · ${selectedEvent.courts}` : isNotif ? `읽지 않음 ${unread}건` : '이그니스 테니스클럽';
+
+    const mkTab = (key, label, badge) => ({
+      label, hasBadge: !!badge, badgeCount: badge,
+      color: screen === key || (key === 'today' && isDetail) ? t.lime : t.inkFaint,
+      bar: screen === key || (key === 'today' && isDetail) ? t.lime : 'transparent',
+      onClick: () => this.navigate(key)
+    });
+
+    return {
+      t, admin, isToday, isDetail, isNotif, isSettings, headerTitle, headerSub,
+      days, todayEvents, selectedEvent, notifications, comments,
+      deskBg: light ? '#E4E4DE' : '#070908',
+      deskInk: light ? '#6E7A63' : '#6E7A63',
+      bezel: light ? '#1B1F19' : '#000000',
+      tabs: [mkTab('today', 'SCHEDULE', 0), mkTab('notifications', 'ALERTS', unread), mkTab('settings', 'ME', 0)],
+      guideLinks: [{ label: '이용 안내' }, { label: '정원 알고리즘 강의노트' }, { label: '신규회원 가이드' }],
+      back: () => this.navigate('today'),
+      toggleAdmin: () => this.setState(s => ({ admin: !s.admin })),
+      toggleDark: () => this.setState(s => ({ light: !s.light })),
+      adminToggleLabel: admin ? 'ON' : 'OFF',
+      adminBtnBg: admin ? t.rose : 'transparent',
+      adminBtnColor: admin ? (light ? '#fff' : '#0F120F') : '#6E7A63',
+      adminBtnBorder: admin ? t.rose : '#3A423A',
+      darkIcon: light ? '☀︎' : '☾',
+      darkToggleLabel: light ? 'LIGHT' : 'DARK',
+      darkBtnBg: 'transparent',
+      darkBtnColor: light ? '#5C6553' : '#8A9680',
+      darkBtnBorder: light ? '#C5C9BC' : '#3A423A',
+      lightSwitchBg: light ? t.lime : 'transparent',
+      lightKnob: light ? '#fff' : t.inkFaint,
+      lightSwitchLeft: light ? '23px' : '3px',
+      adminSwitchBg: admin ? t.lime : 'transparent',
+      adminKnob: admin ? (light ? '#fff' : '#0F120F') : t.inkFaint,
+      adminSwitchLeft: admin ? '23px' : '3px'
+    };
+  }
+}
+</script>
+</body>
+</html>
