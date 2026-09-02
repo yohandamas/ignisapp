@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>이그니스 대진표 생성기</title>
+<style>
+
+  :root{
+    --bg:#F6F6F4; --panel:#FFFFFF;
+    --brand:#1F5C3F; --brand-dark:#153F2B; --brand-soft:#E7F0EA;
+    --accent:#A9791F; --accent-dark:#7D5A16; --accent-soft:#F4ECDA;
+    --danger:#B23B30; --danger-soft:#F5E4E1;
+    --rose:#B5677D; --rose-dark:#8C4A5C; --rose-soft:#F5E8EB;
+    --vivid-green:#0E9F5A; --vivid-orange:#E8730F; --vivid-blue:#1565C0; --vivid-red:#E63946;
+    --ink:#1C1C1C; --ink-soft:#767671; --ink-faint:#A6A69F; --line:#E6E6E1;
+    --chip-bg:rgba(255,255,255,0.85); --chip-bg-locked:rgba(0,0,0,0.04);
+    --font-scale:1;
+  }
+  [data-theme="dark"]{
+    --bg:#161617; --panel:#232325;
+    --brand:#4F8F72; --brand-dark:#8AB39E; --brand-soft:#243530;
+    --accent:#A89572; --accent-dark:#C2B393; --accent-soft:#332E24;
+    --danger:#A9756E; --danger-soft:#332624;
+    --rose:#A98A94; --rose-dark:#C2A8B0; --rose-soft:#332A2E;
+    --vivid-green:#5C9979; --vivid-orange:#AC8A64; --vivid-blue:#7391A8; --vivid-red:#A9706E;
+    --ink:#E4E4E2; --ink-soft:#A3A3A0; --ink-faint:#707070; --line:#38383A;
+    --chip-bg:#2E2E31; --chip-bg-locked:rgba(255,255,255,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);}
+
+  #bracketPanel{--court:#2F7A52;--court-line:#FFFFFF;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Pretendard,sans-serif;-webkit-text-size-adjust:100%;}
+  #bracketPanel .wrap{max-width:640px;margin:0 auto;padding:16px;}
+  #bracketPanel .app-header{padding:22px 4px 18px;}
+  #bracketPanel .app-header h1{font-size:calc(22px * var(--font-scale, 1));margin:0 0 4px;color:var(--brand-dark);font-weight:800;}
+  #bracketPanel .app-header p{margin:0;color:var(--ink-soft);font-size:calc(13px * var(--font-scale, 1));}
+  #bracketPanel .section{background:var(--panel);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}
+  #bracketPanel .section-h{font-size:calc(14px * var(--font-scale, 1));font-weight:800;color:var(--brand-dark);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+  #bracketPanel .section-h .count{font-size:calc(12px * var(--font-scale, 1));font-weight:700;color:var(--accent-dark);background:var(--accent-soft);border-radius:10px;padding:2px 10px;}
+  #bracketPanel .search-row{display:flex;gap:6px;margin-bottom:10px;}
+  #bracketPanel .search-row input{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:calc(14px * var(--font-scale, 1));background:var(--bg);}
+  #bracketPanel .quick-btns{display:flex;gap:6px;}
+  #bracketPanel .qbtn{border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);border-radius:8px;padding:6px 10px;font-size:calc(11px * var(--font-scale, 1));font-weight:700;cursor:pointer;white-space:nowrap;}
+  #bracketPanel .member-grid{max-height:360px;overflow-y:auto;padding:2px;}
+  #bracketPanel .m-gender-h{font-size:calc(11px * var(--font-scale, 1));font-weight:800;color:var(--ink-soft);margin:8px 0 5px;}
+  #bracketPanel .m-gender-h:first-child{margin-top:0;}
+  #bracketPanel .m-gender-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;margin-bottom:6px;}
+  #bracketPanel .m-chip{position:relative;}
+  #bracketPanel .m-chip input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  #bracketPanel .m-chip label{display:flex;align-items:center;justify-content:center;gap:3px;border:1.5px solid var(--line);border-radius:10px;
+    padding:8px 4px;font-size:calc(12px * var(--font-scale, 1));font-weight:700;color:var(--ink-soft);cursor:pointer;text-align:center;line-height:1.3;background:var(--bg);}
+  #bracketPanel .m-chip input:checked + label{background:var(--brand);border-color:var(--brand);color:#fff;}
+  #bracketPanel .m-chip .g{font-size:calc(9px * var(--font-scale, 1));opacity:0.75;}
+  #bracketPanel .add-row{display:flex;gap:6px;margin-top:12px;}
+  #bracketPanel .add-row input{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:calc(14px * var(--font-scale, 1));background:var(--bg);}
+  #bracketPanel .add-row button{border:none;background:var(--accent);color:#fff;border-radius:10px;padding:9px 14px;font-size:calc(13px * var(--font-scale, 1));font-weight:800;cursor:pointer;white-space:nowrap;}
+  #bracketPanel .extra-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  #bracketPanel .extra-tag{display:flex;align-items:center;gap:5px;background:var(--rose-soft);color:#8C4A5C;border-radius:10px;padding:4px 8px 4px 10px;font-size:calc(12px * var(--font-scale, 1));font-weight:700;}
+  #bracketPanel .extra-tag button{border:none;background:none;color:#8C4A5C;cursor:pointer;font-size:calc(13px * var(--font-scale, 1));padding:0;line-height:1;}
+  #bracketPanel .config-row{display:flex;gap:10px;}
+  #bracketPanel .config-item{flex:1;}
+  #bracketPanel .config-item label{display:block;font-size:calc(12px * var(--font-scale, 1));color:var(--ink-soft);font-weight:700;margin-bottom:5px;}
+  #bracketPanel .stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg);}
+  #bracketPanel .stepper button{flex-shrink:0;width:36px;height:38px;border:none;background:var(--panel);color:var(--brand-dark);font-size:calc(16px * var(--font-scale, 1));font-weight:800;cursor:pointer;}
+  #bracketPanel .stepper .val{flex:1;text-align:center;font-size:calc(15px * var(--font-scale, 1));font-weight:800;}
+  #bracketPanel .generate-btn{display:block;width:100%;border:none;background:var(--brand);color:#fff;border-radius:14px;padding:15px;
+    font-size:calc(16px * var(--font-scale, 1));font-weight:800;cursor:pointer;margin-top:4px;}
+  #bracketPanel .generate-btn:disabled{background:var(--ink-faint);cursor:not-allowed;}
+  #bracketPanel .hint{font-size:calc(12px * var(--font-scale, 1));color:var(--ink-soft);margin-top:8px;line-height:1.5;}
+  #bracketPanel .rest-note{font-size:calc(12px * var(--font-scale, 1));color:var(--accent-dark);background:var(--accent-soft);border-radius:8px;padding:6px 10px;margin-top:8px;}
+  #bracketPanel .round-block{margin-bottom:18px;}
+  #bracketPanel .round-title{font-size:calc(14px * var(--font-scale, 1));font-weight:800;color:var(--brand-dark);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  #bracketPanel .round-title .rn{background:var(--brand);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:calc(12px * var(--font-scale, 1));}
+  #bracketPanel .courts-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+  @media(min-width:480px){#bracketPanel .courts-grid{grid-template-columns:1fr 1fr;}}
+  #bracketPanel .court-card{background:var(--court);border-radius:12px;padding:14px 10px;color:#fff;position:relative;}
+  #bracketPanel .court-label{font-size:calc(10px * var(--font-scale, 1));font-weight:800;opacity:0.85;margin-bottom:6px;letter-spacing:0.3px;}
+  #bracketPanel .court-svg-wrap{position:relative;}
+  #bracketPanel .team-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 4px;}
+  #bracketPanel .team-row .p{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:5px 9px;font-size:calc(13px * var(--font-scale, 1));font-weight:700;}
+  #bracketPanel .vs{font-size:calc(11px * var(--font-scale, 1));font-weight:800;opacity:0.8;text-align:center;padding:2px 0;position:relative;}
+  #bracketPanel .vs::before, #bracketPanel .vs::after{content:'';position:absolute;top:50%;width:35%;height:1px;background:rgba(255,255,255,0.35);}
+  #bracketPanel .vs::before{left:0;}
+  #bracketPanel .vs::after{right:0;}
+  #bracketPanel .rest-row{margin-top:10px;background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:calc(12px * var(--font-scale, 1));color:var(--ink-soft);}
+  #bracketPanel .rest-row b{color:var(--ink);}
+  #bracketPanel .actions-row{display:flex;gap:8px;margin-top:6px;}
+  #bracketPanel .actions-row button{flex:1;border:1px solid var(--line);background:var(--panel);color:var(--ink-soft);border-radius:10px;padding:10px;font-size:calc(13px * var(--font-scale, 1));font-weight:700;cursor:pointer;}
+  #bracketPanel .actions-row button.primary{background:var(--brand-soft);color:var(--brand-dark);border-color:var(--brand-soft);}
+  #bracketPanel .empty-note{text-align:center;color:var(--ink-faint);font-size:calc(13px * var(--font-scale, 1));padding:30px 10px;}
+  @media print{#bracketPanel .section.controls, #bracketPanel .actions-row, #bracketPanel .app-header p{display:none;}
+  #bracketPanel{background:#fff !important;}
+  #bracketPanel .court-card{background:#fff !important;color:#000 !important;border:1.5px solid #333;}
+  #bracketPanel .team-row .p{background:#fff !important;border:1px solid #333 !important;color:#000 !important;}
+  #bracketPanel .vs{color:#000;}
+  #bracketPanel .vs::before, #bracketPanel .vs::after{background:#999;}}
+  #bracketPanel .mode-tabs{display:flex;gap:8px;margin-bottom:14px;}
+  #bracketPanel .mode-tab{flex:1;border:1.5px solid var(--line);background:var(--panel);color:var(--ink-soft);border-radius:10px;padding:8px 4px;font-size:calc(11px * var(--font-scale, 1));font-weight:800;cursor:pointer;text-align:center;white-space:nowrap;}
+  #bracketPanel .mode-tab.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+  #bracketPanel .team-build-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  #bracketPanel .team-pick-chip{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 12px;font-size:calc(12px * var(--font-scale, 1));font-weight:700;cursor:pointer;}
+  #bracketPanel .team-pick-chip.picked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark);}
+  #bracketPanel .team-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  #bracketPanel .team-list-row{display:flex;align-items:center;justify-content:space-between;background:var(--brand-soft);border-radius:10px;padding:8px 12px;font-size:calc(13px * var(--font-scale, 1));font-weight:700;color:var(--brand-dark);}
+  #bracketPanel .team-list-row button{border:none;background:none;color:#8C4A5C;font-size:calc(13px * var(--font-scale, 1));cursor:pointer;}
+  #bracketPanel .game-count-box{margin-top:16px;}
+  #bracketPanel .gc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;font-size:calc(13px * var(--font-scale, 1));border-bottom:1px solid var(--line);}
+  #bracketPanel .gc-row:last-child{border-bottom:none;}
+  #bracketPanel .gc-row .gc-bar-wrap{flex:1;margin:0 10px;background:var(--bg);border-radius:6px;height:8px;overflow:hidden;}
+  #bracketPanel .gc-row .gc-bar{height:100%;background:var(--brand);}
+  #bracketPanel .gc-row .gc-n{font-weight:800;color:var(--brand-dark);width:36px;text-align:right;}
+
+</style>
+</head>
+<body>
+  <div class="bracket-panel" id="bracketPanel">
+    <div class="bracket-panel-head">
+      <span>🎾 복식 대진표 생성기</span>
+      <button id="bracketPanelClose">✕</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;">
+      <div class="wrap">
+  <div class="app-header">
+    <h1>🎾 이그니스 복식 대진표</h1>
+    <p id="modeDesc">참석자를 고르고 코트 수·라운드 수만 정하면, 매 라운드 파트너가 최대한 겹치지 않게 자동으로 짜드려요.</p>
+  </div>
+
+  <div class="section">
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="modeIndivBtn">🔀 개인 로테이션</button>
+      <button class="mode-tab" id="modeTeamBtn">🤝 팀 고정 대진표</button>
+      <button class="mode-tab" id="modeLeagueBtn">🏅 단체전(팀vs팀)</button>
+    </div>
+  </div>
+
+  <div class="section controls" id="participantSection">
+    <div class="section-h">참석자 선택 <span class="count" id="selCount">0명 선택</span></div>
+    <div class="search-row">
+      <input type="text" id="searchBox" placeholder="이름 검색...">
+    </div>
+    <div class="quick-btns" style="margin-bottom:10px;">
+      <button class="qbtn" id="selectAllBtn">전체선택</button>
+      <button class="qbtn" id="clearAllBtn">전체해제</button>
+    </div>
+    <div class="member-grid" id="memberGrid"></div>
+
+    <div class="add-row">
+      <input type="text" id="extraNameInput" placeholder="명단에 없는 이름 직접 추가 (예: 게스트)">
+      <button id="addExtraBtn">추가</button>
+    </div>
+    <div class="extra-list" id="extraList"></div>
+  </div>
+
+  <div class="section controls" id="teamBuildSection" style="display:none;">
+    <div class="section-h">팀 구성 <span class="count" id="teamCount">0팀</span></div>
+    <div class="hint" style="margin-top:0;margin-bottom:10px;">이름 2개를 순서대로 눌러서 팀을 만들어 주세요.</div>
+    <div class="team-build-row" id="teamPickRow"></div>
+    <div class="team-list" id="teamList"></div>
+  </div>
+
+  <div class="section controls" id="leagueSection" style="display:none;">
+    <div class="section-h">일요일 프리셋</div>
+    <div class="hint" style="margin-top:0;margin-bottom:10px;">게임당 25분 · 4시간(초반연습 5분 제외) 기준, 개인 최소 3게임 보장 목표로 계산돼요.</div>
+    <div class="quick-btns" style="margin-bottom:6px;">
+      <button class="qbtn" id="presetSunday3Btn" style="flex:1;">☀️ 3코트 (9라운드)</button>
+      <button class="qbtn" id="presetSunday4Btn" style="flex:1;">☀️ 4코트 확보시 (9라운드)</button>
+    </div>
+
+    <div class="section-h" style="margin-top:14px;">팀 구성 <span class="count" id="leagueTeamCount">0팀</span></div>
+    <div id="leagueTeamsList"></div>
+    <button class="qbtn" id="addLeagueTeamBtn" style="margin-top:8px;">+ 팀 추가</button>
+  </div>
+
+  <div class="section controls" id="leagueSettingsSection" style="display:none;">
+    <div class="section-h">단체전 설정</div>
+    <div class="config-row">
+      <div class="config-item">
+        <label>코트 수</label>
+        <div class="stepper">
+          <button id="leagueCourtMinus">−</button>
+          <div class="val" id="leagueCourtVal">3</div>
+          <button id="leagueCourtPlus">+</button>
+        </div>
+      </div>
+      <div class="config-item">
+        <label>가용 라운드 수</label>
+        <div class="stepper">
+          <button id="leagueRoundMinus">−</button>
+          <div class="val" id="leagueRoundVal">9</div>
+          <button id="leagueRoundPlus">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint" id="leagueHint">팀당 인원에 따라 tie(상대팀)당 게임수가 자동 계산돼요.</div>
+    <button class="generate-btn" id="leagueGenerateBtn">단체전 대진표 생성</button>
+  </div>
+
+  <div class="section controls" id="basicSettingsSection">
+    <div class="section-h">설정</div>
+    <div class="config-row">
+      <div class="config-item">
+        <label>코트 수</label>
+        <div class="stepper">
+          <button id="courtMinus">−</button>
+          <div class="val" id="courtVal">2</div>
+          <button id="courtPlus">+</button>
+        </div>
+      </div>
+      <div class="config-item" id="roundConfigItem">
+        <label>라운드 수</label>
+        <div class="stepper">
+          <button id="roundMinus">−</button>
+          <div class="val" id="roundVal">4</div>
+          <button id="roundPlus">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint" id="configHint">코트 1개당 4명(2:2)이 배정돼요. 인원이 (코트수×4)보다 많으면, 라운드마다 돌아가며 쉬는 인원이 생겨요.</div>
+    <button class="generate-btn" id="generateBtn">대진표 생성</button>
+  </div>
+
+  <div id="resultArea"></div>
+</div>
+    </div>
+  </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// ===== Supabase 연동 (메인 이그니스 앱과 동일한 DB 공유 — 회원목록 실시간 동기화용) =====
+const SUPABASE_URL = 'https://osdeuvkpamwogxpwpccx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_w1vWV8KIdgamXNtmWu2VxA_2yppk-ai';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STATE_ROW_KEY = 'events';
+</script>
+<script>
+(async function(){
+
+const MEMBERS = [{"name": "임유나", "district": "관내", "gender": "여"}, {"name": "김태은", "district": "관내", "gender": "여"}, {"name": "서힘찬", "district": "관내", "gender": "남"}, {"name": "최용호", "district": "관내", "gender": "남"}, {"name": "최윤하", "district": "관내", "gender": "여"}, {"name": "강권숙", "district": "관외", "gender": "여"}, {"name": "권은정", "district": "관외", "gender": "여"}, {"name": "김대경", "district": "관외", "gender": "남"}, {"name": "김로사", "district": "관외", "gender": "여"}, {"name": "김미영", "district": "관외", "gender": "여"}, {"name": "김영진", "district": "관외", "gender": "남"}, {"name": "김영하", "district": "관내", "gender": "남"}, {"name": "김오주", "district": "관외", "gender": "여"}, {"name": "김은지", "district": "관내", "gender": "여"}, {"name": "김정현", "district": "관내", "gender": "남"}, {"name": "김준옥", "district": "관외", "gender": "남"}, {"name": "김진주", "district": "관외", "gender": "여"}, {"name": "김진형", "district": "관내", "gender": "남"}, {"name": "김태경", "district": "관외", "gender": "여"}, {"name": "김태주", "district": "관내", "gender": "남"}, {"name": "김태현", "district": "관외", "gender": "남"}, {"name": "곽선주", "district": "관내", "gender": "남"}, {"name": "문건희", "district": "관내", "gender": "남"}, {"name": "박미라", "district": "관내", "gender": "여"}, {"name": "박범진", "district": "관외", "gender": "남"}, {"name": "박세영", "district": "관내", "gender": "남"}, {"name": "박진민", "district": "관내", "gender": "남"}, {"name": "박충효", "district": "관내", "gender": "남"}, {"name": "박혜빈", "district": "관외", "gender": "여"}, {"name": "방미숙", "district": "관내", "gender": "여"}, {"name": "설재훈", "district": "관내", "gender": "남"}, {"name": "손성윤", "district": "관내", "gender": "여"}, {"name": "쉬이핑", "district": "관내", "gender": "여"}, {"name": "안주성", "district": "관내", "gender": "남"}, {"name": "안창주", "district": "관내", "gender": "남"}, {"name": "유지성", "district": "관내", "gender": "남"}, {"name": "유재영", "district": "관내", "gender": "남"}, {"name": "이경규", "district": "관내", "gender": "남"}, {"name": "이동현", "district": "관외", "gender": "남"}, {"name": "이명숙", "district": "관내", "gender": "여"}, {"name": "이수진", "district": "관내", "gender": "여"}, {"name": "이어진", "district": "관외", "gender": "여"}, {"name": "이영만", "district": "관내", "gender": "남"}, {"name": "이윤재", "district": "관외", "gender": "남"}, {"name": "이응주", "district": "관내", "gender": "남"}, {"name": "이행열", "district": "관내", "gender": "남"}, {"name": "이희성", "district": "관내", "gender": "남"}, {"name": "전성호", "district": "관내", "gender": "남"}, {"name": "전유홍", "district": "관내", "gender": "남"}, {"name": "전은지", "district": "관외", "gender": "여"}, {"name": "정승식", "district": "관내", "gender": "남"}, {"name": "정일영", "district": "관외", "gender": "남"}, {"name": "차승진", "district": "관내", "gender": "남"}, {"name": "최강영", "district": "관내", "gender": "남"}, {"name": "최영나", "district": "관내", "gender": "여"}, {"name": "한정훈", "district": "관내", "gender": "남"}, {"name": "홍진경", "district": "관내", "gender": "여"}, {"name": "김영윤", "district": "관내", "gender": "남"}, {"name": "김진영", "district": "관외", "gender": "남"}, {"name": "박종혁", "district": "관외", "gender": "남"}, {"name": "선유빈", "district": "관외", "gender": "여"}, {"name": "최대환", "district": "관내", "gender": "남"}, {"name": "주소연", "district": "관내", "gender": "여"}];
+
+let extraMembers = [];
+let removedMembers = {};
+
+function getActiveMembers(){
+  // 메인 앱의 getActiveMembers()와 동일한 로직 — 정적 기본명단 + 신규가입(extraMembers) - 탈퇴(removedMembers)
+  return [...MEMBERS, ...extraMembers].filter(m => !removedMembers[m.name]);
+}
+
+async function loadMemberOverrides(){
+  // 메인 이그니스 앱과 같은 Supabase의 ignis_state 테이블에서 신규가입/탈퇴 정보만 읽어와
+  // 대진표 회원목록을 실시간으로 최신 상태에 맞춤 (메인 앱과 완전히 독립된 별도 배포본이지만, 같은 DB를 공유)
+  try{
+    const { data, error } = await sb.from('ignis_state').select('value').eq('key', STATE_ROW_KEY).maybeSingle();
+    if(error) throw error;
+    if(data && data.value){
+      extraMembers = data.value.extraMembers || [];
+      removedMembers = data.value.removedMembers || {};
+    }
+  }catch(e){
+    console.error('회원목록 실시간 동기화 실패 (기본 명단으로 진행)', e);
+  }
+}
+
+
+const state = { selected: new Set(), extras: [], courts: 2, rounds: 4, schedule: null, mode: 'indiv', teams: [], teamPick: null,
+  leagueTeams: [{label:'A', size:6},{label:'B', size:6},{label:'C', size:6},{label:'D', size:6}], leagueCourts: 3, leagueRounds: 9, leagueSchedule: null };
+const LEAGUE_LABELS = ['A','B','C','D','E','F'];
+
+function renderMemberGrid(filter){
+  const grid = document.getElementById('memberGrid');
+  const f = (filter || '').trim();
+  const filtered = getActiveMembers().filter(m => !f || m.name.includes(f));
+  const females = filtered.filter(m => m.gender === '여').sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+  const males = filtered.filter(m => m.gender === '남').sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+
+  const renderChip = (m) => {
+    const checked = state.selected.has(m.name) ? 'checked' : '';
+    const gClass = m.gender === '여' ? 'color:#B5677D;' : 'color:#1565C0;';
+    return `<div class="m-chip">
+      <input type="checkbox" id="mem-${m.name}" data-name="${m.name}" ${checked}>
+      <label for="mem-${m.name}">${m.name}<span class="g" style="${gClass}">${m.gender}</span></label>
+    </div>`;
+  };
+
+  const section = (label, list) => list.length ? `
+    <div class="m-gender-h">${label} (${list.length}명)</div>
+    <div class="m-gender-grid">${list.map(renderChip).join('')}</div>
+  ` : '';
+
+  grid.innerHTML = section('👩 여자', females) + section('👨 남자', males);
+  grid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.onchange = () => {
+      const name = cb.getAttribute('data-name');
+      if(cb.checked) state.selected.add(name); else state.selected.delete(name);
+      updateSelCount();
+    };
+  });
+}
+
+function allPlayers(){ return [...state.selected, ...state.extras]; }
+
+function updateSelCount(){
+  document.getElementById('selCount').textContent = `${allPlayers().length}명 선택`;
+  if(state.mode === 'team') renderTeamBuildUI();
+}
+
+function renderExtraList(){
+  const box = document.getElementById('extraList');
+  box.innerHTML = state.extras.map((n,i) => `<span class="extra-tag">${n}<button data-idx="${i}">✕</button></span>`).join('');
+  box.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => { state.extras.splice(parseInt(btn.getAttribute('data-idx'),10), 1); renderExtraList(); updateSelCount(); };
+  });
+}
+
+document.getElementById('searchBox').oninput = (e) => renderMemberGrid(e.target.value);
+document.getElementById('selectAllBtn').onclick = () => {
+  const f = document.getElementById('searchBox').value.trim();
+  getActiveMembers().filter(m => !f || m.name.includes(f)).forEach(m => state.selected.add(m.name));
+  renderMemberGrid(f); updateSelCount();
+};
+document.getElementById('clearAllBtn').onclick = () => { state.selected.clear(); renderMemberGrid(document.getElementById('searchBox').value); updateSelCount(); };
+
+document.getElementById('addExtraBtn').onclick = () => {
+  const input = document.getElementById('extraNameInput');
+  const name = input.value.trim();
+  if(!name){ alert('이름을 입력해 주세요.'); return; }
+  if(state.extras.includes(name) || getActiveMembers().some(m => m.name === name && state.selected.has(name))){
+    alert('이미 목록에 있는 이름이에요.'); return;
+  }
+  state.extras.push(name);
+  input.value = '';
+  renderExtraList(); updateSelCount();
+};
+document.getElementById('extraNameInput').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('addExtraBtn').click(); });
+
+function stepper(valId, minusId, plusId, min, max, onChange){
+  let v = parseInt(document.getElementById(valId).textContent, 10);
+  const render = () => { document.getElementById(valId).textContent = v; onChange(v); };
+  document.getElementById(minusId).onclick = () => { if(v > min){ v--; render(); } };
+  document.getElementById(plusId).onclick = () => { if(v < max){ v++; render(); } };
+  onChange(v);
+}
+stepper('courtVal','courtMinus','courtPlus',1,8,(v)=>{ state.courts = v; });
+stepper('roundVal','roundMinus','roundPlus',1,12,(v)=>{ state.rounds = v; });
+
+// ── 모드 전환 ──────────────────────────────
+document.getElementById('modeIndivBtn').onclick = () => setMode('indiv');
+document.getElementById('modeTeamBtn').onclick = () => setMode('team');
+document.getElementById('modeLeagueBtn').onclick = () => setMode('league');
+function setMode(m){
+  state.mode = m;
+  document.getElementById('modeIndivBtn').classList.toggle('active', m === 'indiv');
+  document.getElementById('modeTeamBtn').classList.toggle('active', m === 'team');
+  document.getElementById('modeLeagueBtn').classList.toggle('active', m === 'league');
+
+  document.getElementById('participantSection').style.display = m === 'league' ? 'none' : 'block';
+  document.getElementById('teamBuildSection').style.display = m === 'team' ? 'block' : 'none';
+  document.getElementById('leagueSection').style.display = m === 'league' ? 'block' : 'none';
+  document.getElementById('basicSettingsSection').style.display = m === 'league' ? 'none' : 'block';
+  document.getElementById('leagueSettingsSection').style.display = m === 'league' ? 'block' : 'none';
+  document.getElementById('roundConfigItem').style.display = (m === 'team') ? 'none' : '';
+
+  const descs = {
+    indiv: '참석자를 고르고 코트 수·라운드 수만 정하면, 매 라운드 파트너가 최대한 겹치지 않게 자동으로 짜드려요.',
+    team: '2명씩 팀을 고정해서 만들고, 팀끼리 돌아가며 맞붙는 리그전 대진표를 짜드려요.',
+    league: '팀(A/B/C...)을 만들고 팀당 인원(최대 6명)을 정하면, 팀끼리 리그전으로 맞붙으면서 개인별 최소 3게임을 목표로 대진을 짜드려요. 이름은 A-1, B-2처럼 표시되니 현장에서 실제 이름을 대입해서 쓰시면 돼요.'
+  };
+  document.getElementById('modeDesc').textContent = descs[m];
+  if(m !== 'league'){
+    document.getElementById('configHint').textContent = m === 'team'
+      ? '팀 수에 따라 전체가 서로 한 번씩 맞붙는 라운드가 자동으로 정해져요. 코트 수만 정하면 돼요.'
+      : '코트 1개당 4명(2:2)이 배정돼요. 인원이 (코트수×4)보다 많으면, 라운드마다 돌아가며 쉬는 인원이 생겨요.';
+  }
+  state.schedule = null;
+  document.getElementById('resultArea').innerHTML = '';
+  if(m === 'team') renderTeamBuildUI();
+  if(m === 'league') renderLeagueTeamsUI();
+}
+
+// ── 팀 구성 UI ──────────────────────────────
+function renderTeamBuildUI(){
+  const teamedNames = new Set(state.teams.flat());
+  const available = allPlayers().filter(n => !teamedNames.has(n));
+  const pickRow = document.getElementById('teamPickRow');
+  pickRow.innerHTML = available.map(n => {
+    const picked = state.teamPick === n ? 'picked' : '';
+    return `<button class="team-pick-chip ${picked}" data-name="${n}">${n}</button>`;
+  }).join('') || `<span class="hint" style="margin:0;">선택 가능한 인원이 없어요. 위에서 참석자를 먼저 골라주세요.</span>`;
+  pickRow.querySelectorAll('.team-pick-chip').forEach(btn => {
+    btn.onclick = () => {
+      const name = btn.getAttribute('data-name');
+      if(state.teamPick === null){
+        state.teamPick = name;
+        renderTeamBuildUI();
+      } else if(state.teamPick === name){
+        state.teamPick = null;
+        renderTeamBuildUI();
+      } else {
+        state.teams.push([state.teamPick, name]);
+        state.teamPick = null;
+        renderTeamBuildUI();
+      }
+    };
+  });
+  const listBox = document.getElementById('teamList');
+  listBox.innerHTML = state.teams.map((t,i) => `<div class="team-list-row"><span>팀${i+1} · ${t[0]} + ${t[1]}</span><button data-idx="${i}">✕</button></div>`).join('');
+  listBox.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => { state.teams.splice(parseInt(btn.getAttribute('data-idx'),10),1); renderTeamBuildUI(); };
+  });
+  document.getElementById('teamCount').textContent = `${state.teams.length}팀`;
+}
+
+// ── 단체전(팀 vs 팀) 팀 구성 UI ──────────────────────────────
+function renderLeagueTeamsUI(){
+  const box = document.getElementById('leagueTeamsList');
+  box.innerHTML = state.leagueTeams.map((t,i) => `
+    <div class="team-list-row" style="align-items:center;">
+      <span>${t.label}팀</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="stepper" style="width:110px;">
+          <button data-lt-minus="${i}">−</button>
+          <div class="val" style="font-size:calc(13px * var(--font-scale, 1));">${t.size}명</div>
+          <button data-lt-plus="${i}">+</button>
+        </div>
+        ${state.leagueTeams.length > 2 ? `<button data-lt-remove="${i}" style="border:none;background:none;color:#8C4A5C;font-size:calc(14px * var(--font-scale, 1));cursor:pointer;">✕</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+  box.querySelectorAll('[data-lt-minus]').forEach(btn => {
+    btn.onclick = () => {
+      const i = parseInt(btn.getAttribute('data-lt-minus'),10);
+      if(state.leagueTeams[i].size > 2) state.leagueTeams[i].size--;
+      renderLeagueTeamsUI();
+    };
+  });
+  box.querySelectorAll('[data-lt-plus]').forEach(btn => {
+    btn.onclick = () => {
+      const i = parseInt(btn.getAttribute('data-lt-plus'),10);
+      if(state.leagueTeams[i].size < 20) state.leagueTeams[i].size++;
+      renderLeagueTeamsUI();
+    };
+  });
+  box.querySelectorAll('[data-lt-remove]').forEach(btn => {
+    btn.onclick = () => {
+      const i = parseInt(btn.getAttribute('data-lt-remove'),10);
+      state.leagueTeams.splice(i,1);
+      renderLeagueTeamsUI();
+    };
+  });
+  document.getElementById('leagueTeamCount').textContent = `${state.leagueTeams.length}팀`;
+}
+
+document.getElementById('addLeagueTeamBtn').onclick = () => {
+  if(state.leagueTeams.length >= 6){ alert('최대 6팀까지 구성할 수 있어요.'); return; }
+  const usedLabels = new Set(state.leagueTeams.map(t => t.label));
+  const nextLabel = LEAGUE_LABELS.find(l => !usedLabels.has(l));
+  state.leagueTeams.push({ label: nextLabel, size: 6 });
+  renderLeagueTeamsUI();
+};
+
+document.getElementById('presetSunday3Btn').onclick = () => {
+  state.leagueCourts = 3; state.leagueRounds = 9;
+  document.getElementById('leagueCourtVal').textContent = 3;
+  document.getElementById('leagueRoundVal').textContent = 9;
+  alert('☀️ 일요일 3코트 기준: 게임당 25분 · 4시간 · 9라운드로 설정했어요.');
+};
+document.getElementById('presetSunday4Btn').onclick = () => {
+  state.leagueCourts = 4; state.leagueRounds = 9;
+  document.getElementById('leagueCourtVal').textContent = 4;
+  document.getElementById('leagueRoundVal').textContent = 9;
+  alert('☀️ 일요일 4코트(3번코트 확보시) 기준: 게임당 25분 · 4시간 · 9라운드로 설정했어요.');
+};
+function updateLeagueCapacityHint(){
+  const el = document.getElementById('leagueHint');
+  if(!el) return;
+  // 4시간(초반연습 5분 제외 235분) ÷ 25분/게임 = 9라운드 기준, 1인당 최소 3게임 보장 최대인원 = 코트수 x 12
+  const maxPeople = state.leagueCourts * 12;
+  el.textContent = `게임당 25분·4시간(연습5분 제외, 9라운드) 기준 — 코트 ${state.leagueCourts}개면 개인당 최소 3게임 보장 최대 약 ${maxPeople}명까지 적당해요. 인원이 이보다 많으면 3게임 보장이 빠듯해질 수 있어요.`;
+}
+stepper('leagueCourtVal','leagueCourtMinus','leagueCourtPlus',1,8,(v)=>{ state.leagueCourts = v; updateLeagueCapacityHint(); });
+updateLeagueCapacityHint();
+stepper('leagueRoundVal','leagueRoundMinus','leagueRoundPlus',1,15,(v)=>{ state.leagueRounds = v; });
+
+// ── 단체전 핵심 알고리즘 ──────────────────────────────
+function calcGamesPerTie(teamSize, numTeams){
+  const totalTarget = Math.ceil(teamSize * 3 / 2);
+  const tiesPerTeam = Math.max(1, numTeams - 1);
+  return Math.max(1, Math.ceil(totalTarget / tiesPerTeam));
+}
+
+function pickBestPair(sortedMembers, partnerHistory){
+  const candidates = sortedMembers.slice(0, Math.min(4, sortedMembers.length));
+  let best = null; let bestScore = Infinity;
+  for(let i = 0; i < candidates.length; i++){
+    for(let j = i+1; j < candidates.length; j++){
+      const key = pairKey(candidates[i], candidates[j]);
+      const score = partnerHistory[key] || 0;
+      if(score < bestScore){ bestScore = score; best = [candidates[i], candidates[j]]; }
+    }
+  }
+  if(best) partnerHistory[pairKey(best[0], best[1])] = (partnerHistory[pairKey(best[0], best[1])]||0) + 1;
+  return best;
+}
+
+function generateTieGames(teamAMembers, teamBMembers, targetGames, globalGameCount){
+  const partnerHistoryA = {}; const partnerHistoryB = {};
+  const games = [];
+  for(let g = 0; g < targetGames; g++){
+    const sortedA = teamAMembers.slice().sort((x,y) => (globalGameCount[x]||0) - (globalGameCount[y]||0));
+    const sortedB = teamBMembers.slice().sort((x,y) => (globalGameCount[x]||0) - (globalGameCount[y]||0));
+    if(sortedA.length < 2 || sortedB.length < 2) break;
+    const pairA = pickBestPair(sortedA, partnerHistoryA);
+    const pairB = pickBestPair(sortedB, partnerHistoryB);
+    pairA.forEach(m => { globalGameCount[m] = (globalGameCount[m]||0) + 1; });
+    pairB.forEach(m => { globalGameCount[m] = (globalGameCount[m]||0) + 1; });
+    games.push({ teamA_players: pairA, teamB_players: pairB });
+  }
+  return games;
+}
+
+function generateLeagueSchedule(leagueTeams, numCourts){
+  const teamRosters = leagueTeams.map(t => ({ label: t.label, members: Array.from({length:t.size}, (_,n) => `${t.label}-${n+1}`) }));
+  const teamLabels = teamRosters.map(t => t.label);
+  const logicalRounds = roundRobinPairs(teamLabels);
+  const maxSize = Math.max(...leagueTeams.map(t => t.size));
+  const gamesPerTie = calcGamesPerTie(maxSize, teamLabels.length);
+
+  const globalGameCount = {};
+  teamRosters.forEach(t => t.members.forEach(m => globalGameCount[m] = 0));
+  const physicalRounds = [];
+
+  logicalRounds.forEach(ties => {
+    const tieGameQueues = ties.map(([labelA, labelB]) => {
+      const teamA = teamRosters.find(t => t.label === labelA);
+      const teamB = teamRosters.find(t => t.label === labelB);
+      const games = generateTieGames(teamA.members, teamB.members, gamesPerTie, globalGameCount);
+      return { labelA, labelB, queue: games.slice() };
+    });
+    while(tieGameQueues.some(q => q.queue.length > 0)){
+      const usedPlayers = new Set();
+      const courtsThisRound = [];
+      let progress = true;
+      while(courtsThisRound.length < numCourts && progress){
+        progress = false;
+        for(const tq of tieGameQueues){
+          if(courtsThisRound.length >= numCourts) break;
+          if(tq.queue.length === 0) continue;
+          const nextGame = tq.queue[0];
+          const allPlayers = [...nextGame.teamA_players, ...nextGame.teamB_players];
+          if(allPlayers.some(p => usedPlayers.has(p))) continue;
+          allPlayers.forEach(p => usedPlayers.add(p));
+          courtsThisRound.push({ tie: `${tq.labelA} vs ${tq.labelB}`, ...nextGame });
+          tq.queue.shift();
+          progress = true;
+        }
+      }
+      if(courtsThisRound.length === 0) break; // 안전장치(무한루프 방지)
+      physicalRounds.push(courtsThisRound);
+    }
+  });
+
+  return { physicalRounds, globalGameCount, gamesPerTie };
+}
+
+function renderLeagueSchedule(){
+  const area = document.getElementById('resultArea');
+  const sched = state.leagueSchedule;
+  if(!sched){ area.innerHTML = ''; return; }
+  const { physicalRounds, globalGameCount, gamesPerTie } = sched;
+  const capacityNote = state.leagueRounds < physicalRounds.length
+    ? `<div class="rest-note" style="margin-bottom:10px;">⚠️ 설정한 라운드(${state.leagueRounds})보다 실제 필요한 라운드(${physicalRounds.length})가 더 많아요. 코트를 늘리거나 라운드 예산을 늘려주세요. 아래는 전체 대진이며, 실제로는 앞부분만 진행될 수 있어요.</div>`
+    : '';
+  area.innerHTML = capacityNote + physicalRounds.map((round, ri) => `
+    <div class="round-block">
+      <div class="round-title"><span class="rn">${ri+1}</span> ${ri+1}라운드</div>
+      <div class="courts-grid">
+        ${round.map((g, ci) => `
+          <div class="court-card">
+            <div class="court-label">COURT ${ci+1} · ${g.tie}</div>
+            <div class="team-row"><span class="p">${g.teamA_players[0]}</span><span class="p">${g.teamA_players[1]}</span></div>
+            <div class="vs">VS</div>
+            <div class="team-row"><span class="p">${g.teamB_players[0]}</span><span class="p">${g.teamB_players[1]}</span></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('') + `<div class="hint" style="margin-bottom:6px;">tie(상대팀)당 게임수: ${gamesPerTie}게임 · 총 물리 라운드: ${physicalRounds.length}개</div>`
+    + renderGameCountBox(globalGameCount, '개인별 총 게임 수') + `
+    <div class="actions-row">
+      <button id="leagueRegenBtn">🔄 다시 섞기</button>
+      <button class="primary" id="printBtn">🖨️ 인쇄 / 저장</button>
+    </div>
+  `;
+  const regenBtn = document.getElementById('leagueRegenBtn');
+  if(regenBtn) regenBtn.onclick = () => runLeagueGenerate();
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = () => window.print();
+}
+
+function runLeagueGenerate(){
+  if(state.leagueTeams.length < 2){ alert('팀을 2개 이상 구성해 주세요.'); return; }
+  state.leagueSchedule = generateLeagueSchedule(state.leagueTeams, state.leagueCourts);
+  renderLeagueSchedule();
+  document.getElementById('resultArea').scrollIntoView({behavior:'smooth', block:'start'});
+}
+document.getElementById('leagueGenerateBtn').onclick = () => runLeagueGenerate();
+
+// ── 개인 로테이션 알고리즘 ──────────────────────────────
+function pairKey(a,b){ return [a,b].sort().join('|'); }
+
+function generateSchedule(players, numCourts, numRounds){
+  const capacity = numCourts * 4;
+  const partnerHistory = {};
+  const restCount = {};
+  const playCount = {};
+  players.forEach(p => { restCount[p] = 0; playCount[p] = 0; });
+  const rounds = [];
+
+  for(let r = 0; r < numRounds; r++){
+    let playing = players.slice();
+    let resting = [];
+    if(players.length > capacity){
+      const restNeeded = players.length - capacity;
+      const sortedByRestAsc = players.slice().sort((a,b) => restCount[a] - restCount[b]);
+      resting = sortedByRestAsc.slice(0, restNeeded);
+      resting.forEach(p => restCount[p]++);
+      const restingSet = new Set(resting);
+      playing = players.filter(p => !restingSet.has(p));
+    }
+    for(let i = playing.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [playing[i], playing[j]] = [playing[j], playing[i]];
+    }
+    const courts = [];
+    for(let c = 0; c < numCourts; c++){
+      const four = playing.slice(c*4, c*4+4);
+      if(four.length < 4){ continue; }
+      const [a,b,cc,d] = four;
+      const splits = [
+        [[a,b],[cc,d]],
+        [[a,cc],[b,d]],
+        [[a,d],[b,cc]]
+      ];
+      splits.forEach(s => { s.score = (partnerHistory[pairKey(s[0][0],s[0][1])]||0) + (partnerHistory[pairKey(s[1][0],s[1][1])]||0); });
+      splits.sort((x,y) => x.score - y.score);
+      const chosen = splits[0];
+      chosen.forEach(team => {
+        const k = pairKey(team[0], team[1]);
+        partnerHistory[k] = (partnerHistory[k]||0) + 1;
+        team.forEach(p => playCount[p] = (playCount[p]||0) + 1);
+      });
+      courts.push({ court: c+1, teamA: chosen[0], teamB: chosen[1] });
+    }
+    const leftover = playing.slice(numCourts*4);
+    rounds.push({ round: r+1, courts, resting: resting.concat(leftover) });
+  }
+  return { rounds, playCount };
+}
+
+// ── 팀 고정 라운드로빈 알고리즘 (서클 메서드) ──────────────────────────────
+function roundRobinPairs(teams){
+  const arr = teams.map((t,i) => ({ idx:i, team:t }));
+  if(arr.length % 2 === 1) arr.push(null); // 부전승 자리
+  const n = arr.length;
+  const logicalRounds = [];
+  let rot = arr.slice();
+  for(let r = 0; r < n - 1; r++){
+    const roundMatches = [];
+    for(let i = 0; i < n/2; i++){
+      const a = rot[i];
+      const b = rot[n-1-i];
+      if(a && b) roundMatches.push([a.team, b.team]);
+    }
+    logicalRounds.push(roundMatches);
+    // 첫 자리 고정, 나머지 회전
+    const fixed = rot[0];
+    const rest = rot.slice(1);
+    rest.unshift(rest.pop());
+    rot = [fixed, ...rest];
+  }
+  return logicalRounds;
+}
+
+function generateTeamSchedule(teams, numCourts){
+  const logicalRounds = roundRobinPairs(teams);
+  const displayRounds = [];
+  const allMatches = [];
+  logicalRounds.forEach(logicalMatches => {
+    // 같은 라운드 안에서 겹치는 팀이 없다는 게 라운드로빈의 핵심이므로,
+    // 코트 수만큼 잘라서 물리적 라운드를 나누더라도 "다른 논리 라운드"와는 절대 섞지 않는다.
+    for(let i = 0; i < logicalMatches.length; i += numCourts){
+      const chunk = logicalMatches.slice(i, i + numCourts);
+      displayRounds.push({ round: displayRounds.length + 1, matches: chunk });
+      chunk.forEach(m => allMatches.push(m));
+    }
+  });
+  const gameCount = {};
+  teams.forEach(t => { gameCount[t[0]+' + '+t[1]] = 0; });
+  allMatches.forEach(([a,b]) => {
+    gameCount[a[0]+' + '+a[1]] = (gameCount[a[0]+' + '+a[1]]||0) + 1;
+    gameCount[b[0]+' + '+b[1]] = (gameCount[b[0]+' + '+b[1]]||0) + 1;
+  });
+  return { displayRounds, gameCount, totalMatches: allMatches.length };
+}
+
+// ── 결과 렌더링 ──────────────────────────────
+function renderGameCountBox(playCountObj, title){
+  const entries = Object.entries(playCountObj).sort((a,b) => b[1]-a[1]);
+  const max = Math.max(1, ...entries.map(e => e[1]));
+  return `<div class="section game-count-box">
+    <div class="section-h">${title || '1인당 총 게임 수'}</div>
+    ${entries.map(([name,n]) => `
+      <div class="gc-row">
+        <span>${name}</span>
+        <div class="gc-bar-wrap"><div class="gc-bar" style="width:${Math.round(n/max*100)}%"></div></div>
+        <span class="gc-n">${n}게임</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderSchedule(){
+  const area = document.getElementById('resultArea');
+  if(!state.schedule){ area.innerHTML = ''; return; }
+
+  if(state.mode === 'team'){
+    const { displayRounds, gameCount, totalMatches } = state.schedule;
+    if(totalMatches === 0){
+      area.innerHTML = `<div class="section"><div class="empty-note">팀을 2팀 이상 만들어 주세요.</div></div>`;
+      return;
+    }
+    area.innerHTML = displayRounds.map(rd => `
+      <div class="round-block">
+        <div class="round-title"><span class="rn">${rd.round}</span> ${rd.round}라운드</div>
+        <div class="courts-grid">
+          ${rd.matches.map((m,ci) => `
+            <div class="court-card">
+              <div class="court-label">COURT ${ci+1}</div>
+              <div class="team-row"><span class="p">${m[0][0]}</span><span class="p">${m[0][1]}</span></div>
+              <div class="vs">VS</div>
+              <div class="team-row"><span class="p">${m[1][0]}</span><span class="p">${m[1][1]}</span></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('') + renderGameCountBox(gameCount, '팀별 총 경기 수') + `
+      <div class="actions-row">
+        <button class="primary" id="printBtn">🖨️ 인쇄 / 저장</button>
+      </div>
+    `;
+    const printBtn = document.getElementById('printBtn');
+    if(printBtn) printBtn.onclick = () => window.print();
+    return;
+  }
+
+  const { rounds, playCount } = state.schedule;
+  if(rounds.length === 0){
+    area.innerHTML = `<div class="section"><div class="empty-note">참석자를 4명 이상 선택해 주세요.</div></div>`;
+    return;
+  }
+  area.innerHTML = rounds.map(rd => `
+    <div class="round-block">
+      <div class="round-title"><span class="rn">${rd.round}</span> ${rd.round}라운드</div>
+      <div class="courts-grid">
+        ${rd.courts.map(c => `
+          <div class="court-card">
+            <div class="court-label">COURT ${c.court}</div>
+            <div class="team-row"><span class="p">${c.teamA[0]}</span><span class="p">${c.teamA[1]}</span></div>
+            <div class="vs">VS</div>
+            <div class="team-row"><span class="p">${c.teamB[0]}</span><span class="p">${c.teamB[1]}</span></div>
+          </div>
+        `).join('')}
+      </div>
+      ${rd.resting.length ? `<div class="rest-row">💺 이번 라운드 대기: <b>${rd.resting.join(', ')}</b></div>` : ''}
+    </div>
+  `).join('') + renderGameCountBox(playCount) + `
+    <div class="actions-row">
+      <button id="regenBtn">🔄 다시 섞기</button>
+      <button class="primary" id="printBtn">🖨️ 인쇄 / 저장</button>
+    </div>
+  `;
+  const regenBtn = document.getElementById('regenBtn');
+  if(regenBtn) regenBtn.onclick = () => { runGenerate(); };
+  const printBtn = document.getElementById('printBtn');
+  if(printBtn) printBtn.onclick = () => window.print();
+}
+
+function runGenerate(){
+  if(state.mode === 'team'){
+    if(state.teams.length < 2){
+      alert('팀을 최소 2팀 이상 만들어 주세요.');
+      return;
+    }
+    state.schedule = generateTeamSchedule(state.teams, state.courts);
+    renderSchedule();
+    document.getElementById('resultArea').scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  const players = allPlayers();
+  if(players.length < 4){
+    alert('참석자를 최소 4명 이상 선택해 주세요.');
+    return;
+  }
+  if(players.length > state.courts * 4){
+    const need = Math.ceil(players.length / 4);
+    if(!confirm(`선택 인원(${players.length}명)이 코트 ${state.courts}개 정원(${state.courts*4}명)보다 많아요.\n라운드마다 일부는 돌아가며 대기하게 됩니다. 계속할까요?\n(참고: 전원이 매번 뛰려면 코트가 ${need}개 필요해요)`)) return;
+  }
+  state.schedule = generateSchedule(players, state.courts, state.rounds);
+  renderSchedule();
+  document.getElementById('resultArea').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.getElementById('generateBtn').onclick = () => runGenerate();
+
+await loadMemberOverrides();
+renderMemberGrid('');
+renderExtraList();
+updateSelCount();
+
+})();
+</script>
+</body>
+</html>
