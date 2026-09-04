@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F120F">
+<title>이그니스 코트 V3</title>
+<link rel="manifest" href="/pwa/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --bg:#0F120F; --card:#141814; --chip:#232A20; --line:#232A20;
+    --ink:#F2F5EE; --inkSoft:#8A9680; --inkFaint:#5E6A55;
+    --lime:#C8F169; --limeLine:#2F3A28; --gold:#D9B872; --goldLine:#3E3624;
+    --rose:#E9A0B8; --roseLine:#4A2F39; --tabBg:#0B0D0B;
+  }
+  html[data-mode="light"]{
+    --bg:#F7F7F3; --card:#FFFFFF; --chip:#ECF2DD; --line:#DDE2D4;
+    --ink:#14170F; --inkSoft:#5C6553; --inkFaint:#9AA290;
+    --lime:#4E7A16; --limeLine:#B9D98A; --gold:#8A6A12; --goldLine:#E0CD9A;
+    --rose:#B4485F; --roseLine:#E7B7C2; --tabBg:#FFFFFF;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',-apple-system,sans-serif;overscroll-behavior-y:none;word-break:keep-all;}
+  a{color:var(--lime);text-decoration:none;}
+  a:hover{opacity:.8;}
+  button{font-family:inherit;cursor:pointer;color:inherit;}
+  #app{display:flex;flex-direction:column;height:100dvh;max-width:520px;margin:0 auto;}
+  .bebas{font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+  .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 22px;display:flex;flex-direction:column;gap:13px;}
+  .card{border:1px solid var(--line);border-radius:24px;background:var(--card);padding:17px;display:flex;flex-direction:column;gap:12px;}
+  .btnrow{display:grid;gap:6px;}
+  .vbtn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:11px;height:40px;font-size:13.5px;font-weight:900;}
+  .vbtn.sub{font-size:12.5px;font-weight:800;color:var(--inkSoft);}
+  .tabbar{display:flex;border-top:1px solid var(--line);background:var(--tabBg);padding-bottom:env(safe-area-inset-bottom);}
+  .tabbar button{flex:1;border:none;background:transparent;padding:12px 0 14px;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
+  .tablabel{font-size:10px;font-weight:900;letter-spacing:.9px;color:var(--inkFaint);}
+  .tabbar button.on .tablabel{color:var(--lime);}
+  .tabbar .bar{width:16px;height:2px;background:transparent;border-radius:2px;}
+  .tabbar button.on .bar{background:var(--lime);}
+  .badge{position:absolute;top:7px;right:18%;background:var(--rose);color:var(--bg);font-size:9px;font-weight:900;border-radius:999px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+  .pill{font-size:10px;font-weight:900;letter-spacing:.6px;padding:3px 9px;border-radius:999px;border:1px solid;white-space:nowrap;}
+  .gbox{border:1px solid;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:7px;}
+  .gnames{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;}
+  .gnames span{font-size:11px;font-weight:800;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gauge{height:3px;background:var(--line);border-radius:2px;overflow:hidden;display:flex;}
+  input,select{font-family:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:11px;height:44px;padding:0 13px;font-size:15px;width:100%;}
+  .load{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--inkFaint);font-size:13px;font-weight:700;line-height:1.7;}
+  .seg{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex-shrink:0;}
+  .seg button{border:none;background:transparent;padding:6px 11px;font-size:10.5px;font-weight:900;letter-spacing:.4px;color:var(--inkFaint);}
+  .seg button.on{background:var(--lime);color:var(--bg);}
+  .topbtn{border:1px solid var(--lime);background:transparent;color:var(--lime);border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:900;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div id="app"><div class="load">불러오는 중…</div></div>
+
+<script>
+const SUPABASE_URL = 'https://osdeuvkpamwogxpwpccx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_w1vWV8KIdgamXNtmWu2VxA_2yppk-ai';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const STATE_ROW_KEY = 'events';
+
+const APP_VERSION = 'IGNISAPP.V3';
+const WD = ['일','월','화','수','목','금','토'];
+const dowColor = (dow, P) => dow === 0 ? P.rose : dow === 6 ? P.blue : P.ink;
+const FEMALE = new Set(['임유나','최윤하','강권숙','권은정','김로사','김미영','김오주','김은지','김준옥','김진주','김태은','곽선주','박미라','박세영','박혜빈','방미숙','쉬이핑','이명숙','이수진','이어진','전은지','최영나','홍진경','김진영','선유빈','주소연','김영진']);
+const STAFF = ['서힘찬','최용호','김태은','임유나','최윤하'];
+const MEMBERS_RAW = [['임유나','관내'],['김태은','관내'],['서힘찬','관내'],['최용호','관내'],['최윤하','관내'],['강권숙','관외'],['권은정','관외'],['김대경','관외'],['김로사','관외'],['김미영','관외'],['김영진','관외'],['김영하','관내'],['김오주','관외'],['김은지','관내'],['김정현','관내'],['김준옥','관외'],['김진주','관외'],['김진형','관내'],['김태경','관외'],['김태주','관내'],['김태현','관외'],['곽선주','관내'],['문건희','관내'],['박미라','관내'],['박범진','관외'],['박세영','관내'],['박진민','관내'],['박충효','관내'],['박혜빈','관외'],['방미숙','관내'],['설재훈','관내'],['손성윤','관내'],['쉬이핑','관내'],['안주성','관내'],['안창주','관내'],['유지성','관내'],['유재영','관내'],['이경규','관내'],['이동현','관외'],['이명숙','관내'],['이수진','관내'],['이어진','관외'],['이영만','관내'],['이윤재','관외'],['이응주','관내'],['이행열','관내'],['이희성','관내'],['전성호','관내'],['전유홍','관내'],['전은지','관외'],['정승식','관내'],['정일영','관외'],['차승진','관내'],['최강영','관내'],['최영나','관내'],['한정훈','관내'],['홍진경','관내'],['김영윤','관내'],['김진영','관외'],['박종혁','관외'],['선유빈','관외'],['최대환','관내'],['주소연','관내']];
+const FP_A = ["김영윤","김영하","김은지","김태은","차승진","박진민","박충효","방미숙","서힘찬","설재훈","손성윤","쉬이핑","안주성","안창주","유재영","유지성","이경규","이명숙","유지나","이응주","김태주","곽선주"];
+const FP_B = ["임유나","최윤하","이수진","이영만","박미라","이행열","이희성","김진형","전성호","전유홍","정승식","전은지","최강영","최영나","최용호","한정훈","장미옥","홍진경","김정현","최대환","문건희","주소연"];
+
+const VENUE = {
+  dark:{ '유니온':{c:'#FF8B36', l:'#4A2E17', s:'#2B1B0F'}, '종합운동장':{c:'#5FD8CE', l:'#1B3F3D', s:'#102725'} },
+  light:{ '유니온':{c:'#D2601A', l:'#F0C9A8', s:'#FBEEE2'}, '종합운동장':{c:'#0E8C86', l:'#A8DFDA', s:'#E3F5F3'} }
+};
+const GENDER = {
+  dark:{ f:{c:'#F5A6C0', l:'#4A2F39', s:'#2C1C24'}, m:{c:'#8FD6FF', l:'#22394A', s:'#122130'} },
+  light:{ f:{c:'#C0567A', l:'#EDBFCE', s:'#FAE8EE'}, m:{c:'#2C6E9B', l:'#BCD8E9', s:'#E7F1F8'} }
+};
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue('--' + n).trim();
+const pal = () => ({
+  bg:cssv('bg'), card:cssv('card'), chip:cssv('chip'), line:cssv('line'),
+  ink:cssv('ink'), inkSoft:cssv('inkSoft'), inkFaint:cssv('inkFaint'),
+  lime:cssv('lime'), limeLine:cssv('limeLine'), gold:cssv('gold'), goldLine:cssv('goldLine'),
+  rose:cssv('rose'), roseLine:cssv('roseLine'),
+  blue: S.mode === 'light' ? '#1E6FA8' : '#6FC7F5',
+  venue:VENUE[S.mode], g:GENDER[S.mode]
+});
+
+const S = {
+  screen:'today', dow:0, selectedId:null, myName:'', me:null, mode:'dark',
+  blob:null, votes:{}, comments:{}, notifications:[], events:[], weekStart:null, members:[], loadErr:'', expanded:{}, sheet:null
+};
+
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const isAdmin = () => !!(S.me && S.me.is_staff);
+function mondayOf(d){ const x = new Date(d); const w = x.getDay(); x.setDate(x.getDate() - (w === 0 ? 6 : w - 1)); x.setHours(0,0,0,0); return x; }
+function baseMembers(){ return MEMBERS_RAW.map(([name, district]) => ({ name, district, gender: FEMALE.has(name) ? '여' : '남', is_staff: STAFF.includes(name) })); }
+function isPast(ev){ return Date.now() > new Date(`${ev.date}T${ev.end}:00`).getTime() + 20*60*1000; }
+function effectiveDow(){
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  for(let i = todayIdx; i < 7; i++){
+    const list = S.events.filter(e => e.i === i);
+    if(list.length && list.some(e => !isPast(e))) return i;
+  }
+  return todayIdx;
+}
+
+function computeCapacity(t, id, blob){
+  const dawn = t.startTime === '06:00' && t.endTime === '08:00';
+  const quota = dawn ? 8 : t.courts.length * 6;
+  const fullMax = t.courts.length * 8;
+  const includesCourt3 = t.location === '유니온' && t.courts.length > 1 && t.courts.some(c => c.replace(/번/g,'').trim() === '3');
+  const unconfirmedMax = dawn ? 6 : (includesCourt3 ? (t.courts.length === 3 ? 12 : (t.courts.length - 1) * 8) : fullMax);
+  const confirmed = !!(blob.court3Confirmed && blob.court3Confirmed[id]);
+  const def = includesCourt3 ? (confirmed ? quota : unconfirmedMax) : quota;
+  const ov = blob.capacityOverrides && blob.capacityOverrides[id];
+  return { max_players: ov != null ? ov : def, includesCourt3, court3Confirmed: confirmed, unconfirmedMax, confirmedMax: quota, hasOverride: ov != null };
+}
+
+function buildWeek(){
+  const out = [], templates = (S.blob && S.blob.templates) || [], skipped = (S.blob && S.blob.skippedDates) || {};
+  for(let i=0;i<7;i++){
+    const d = new Date(S.weekStart); d.setDate(d.getDate()+i);
+    const day = iso(d), dow = d.getDay();
+    templates.forEach(t => {
+      if(!t.daysOfWeek || !t.daysOfWeek.includes(dow)) return;
+      const id = t.id + '_' + day;
+      if(skipped[id]) return;
+      const cap = computeCapacity(t, id, S.blob || {});
+      out.push({
+        id, i, date:day, dow, dowKo:WD[dow], weekend: dow === 0 || dow === 6,
+        title:t.title, location:t.location, courts:t.courts.join('·') + ' 코트',
+        time:t.startTime + '–' + t.endTime, start:t.startTime, end:t.endTime,
+        max:cap.max_players, includesCourt3:cap.includesCourt3, court3Confirmed:cap.court3Confirmed,
+        unconfirmedMax:cap.unconfirmedMax, confirmedMax:cap.confirmedMax, hasOverride:cap.hasOverride
+      });
+    });
+  }
+  return out.sort((a,b) => (a.date + a.start).localeCompare(b.date + b.start));
+}
+
+function rosterOf(ev){
+  const v = S.votes[ev.id] || {};
+  const going = [], waiting = [], absent = [];
+  Object.entries(v).forEach(([name, o]) => {
+    const m = S.members.find(x => x.name === name);
+    const row = {
+      name, g:o.gender || (m && m.gender) || '남',
+      district:o.district || (m && m.district) || '관내',
+      status:o.status, hidden:!!o.hidden, late:!!o.late, lateMin:o.lateMin, type:o.type
+    };
+    if(o.status === 'attend'){ if(!o.hidden) going.push(row); }
+    else if(o.status === 'waiting') waiting.push(row);
+    else if(o.status === 'absent') absent.push(row);
+  });
+  const f = going.filter(p => p.g === '여'), m = going.filter(p => p.g === '남');
+  return { going, waiting, absent, f, m };
+}
+
+/* ---------- 데이터 ---------- */
+async function loadAll(){
+  const stateRes = await sb.from('ignis_state').select('value').eq('key', STATE_ROW_KEY).maybeSingle();
+  if(stateRes.error) throw stateRes.error;
+  S.blob = (stateRes.data && stateRes.data.value) || {};
+  if(!S.blob.templates) S.blob.templates = [];
+
+  const extra = S.blob.extraMembers || [], removed = S.blob.removedMembers || {};
+  const byName = new Map();
+  [...baseMembers(), ...extra].forEach(m => { if(!removed[m.name]) byName.set(m.name, m); });
+  S.members = Array.from(byName.values());
+  S.me = S.members.find(m => m.name === S.myName) || null;
+
+  S.events = buildWeek();
+  const ids = S.events.map(e => e.id);
+
+  const [votesRes, cmtRes, notiRes] = await Promise.all([
+    ids.length ? sb.from('ignis_votes').select('*').in('event_id', ids) : Promise.resolve({ data: [] }),
+    ids.length ? sb.from('ignis_comments').select('*').in('event_id', ids).order('ts', { ascending: true }) : Promise.resolve({ data: [] }),
+    sb.from('ignis_notifications').select('*').order('ts', { ascending: false }).limit(60)
+  ]);
+
+  const votes = {};
+  (votesRes.data || []).forEach(r => {
+    if(!votes[r.event_id]) votes[r.event_id] = {};
+    votes[r.event_id][r.member_name] = {
+      status:r.status, gender:r.gender, district:r.district,
+      hidden:!!r.hidden, late:!!r.late_arrival, lateMin:r.late_minutes || null,
+      type:r.vote_type || null, displayName:r.display_name || null, lessonTime:r.lesson_time || null
+    };
+  });
+  S.votes = votes;
+
+  const comments = {};
+  (cmtRes.data || []).forEach(r => {
+    if(!comments[r.event_id]) comments[r.event_id] = [];
+    comments[r.event_id].push({ id:r.id, name:r.member_name, body:r.body, ts:Number(r.ts) || 0 });
+  });
+  S.comments = comments;
+
+  S.notifications = (notiRes.data || []).map(r => ({
+    id:r.id, ts:Number(r.ts) || 0, body:r.body, read:!!(r.read_by || []).includes(S.myName)
+  }));
+}
+
+async function saveVote(ev, patch, clear){
+  const row = {
+    event_id:ev.id, member_name:S.myName,
+    gender:(S.me && S.me.gender) || null, district:(S.me && S.me.district) || null,
+    ts:Date.now(), ...patch
+  };
+  try{
+    if(clear) await sb.from('ignis_votes').delete().eq('event_id', ev.id).eq('member_name', S.myName);
+    else{
+      const { error } = await sb.from('ignis_votes').upsert(row, { onConflict:'event_id,member_name' });
+      if(error) throw error;
+    }
+  }catch(e){ console.error('투표 저장 실패', e); alert('저장에 실패했습니다. 통신 상태를 확인해 주세요.'); }
+}
+
+async function vote(ev, kind){
+  if(!S.myName){ S.screen = 'login'; render(); return; }
+  const cur = (S.votes[ev.id] || {})[S.myName] || null;
+  if(!S.votes[ev.id]) S.votes[ev.id] = {};
+  const g = (S.me && S.me.gender) || '남', d = (S.me && S.me.district) || '관내';
+
+  if(kind === 'cancel'){
+    S.sheet = null;
+    delete S.votes[ev.id][S.myName]; render();
+    return saveVote(ev, {}, true);
+  }
+  if(kind === 'lesson'){
+    const input = prompt('레슨 시간을 입력해 주세요 (예: 06:00)', (cur && cur.lessonTime) || ev.start);
+    if(input === null) return;
+    const t = String(input).trim();
+    if(!t) return;
+    S.sheet = null;
+    S.votes[ev.id][S.myName] = { status:'attend', gender:g, district:d, lessonTime:t };
+    render();
+    return saveVote(ev, { status:'attend', lesson_time:t, late_arrival:false, late_minutes:null, hidden:false });
+  }
+  if(kind === 'late'){
+    const input = prompt('몇 분 늦게 도착하시나요? (숫자만)', cur && cur.lateMin ? String(cur.lateMin) : '15');
+    if(input === null) return;
+    const mins = Math.max(1, Math.min(300, parseInt(String(input).replace(/[^0-9]/g,''), 10) || 0));
+    if(!mins) return;
+    S.sheet = null;
+    S.votes[ev.id][S.myName] = { status:'attend', gender:g, district:d, late:true, lateMin:mins };
+    render();
+    return saveVote(ev, { status:'attend', late_arrival:true, late_minutes:mins, hidden:false });
+  }
+  const same = cur && cur.status === kind && !cur.late && !cur.lessonTime;
+  S.sheet = null;
+  if(same){
+    delete S.votes[ev.id][S.myName]; render();
+    return saveVote(ev, {}, true);
+  }
+  S.votes[ev.id][S.myName] = { status:kind, gender:g, district:d };
+  render();
+  return saveVote(ev, { status:kind, late_arrival:false, late_minutes:null, lesson_time:null, hidden:false, vote_type: kind === 'waiting' ? 'regular' : null });
+}
+
+async function moveMember(ev, name){
+  if(!isAdmin()) return;
+  const order = ['attend','waiting','absent'];
+  const cur = (S.votes[ev.id] || {})[name];
+  const idx = order.indexOf(cur && cur.status);
+  const next = order[(idx < 0 ? 0 : idx + 1) % order.length];
+  const m = S.members.find(x => x.name === name);
+  S.votes[ev.id][name] = { status:next, gender:(cur && cur.gender) || (m && m.gender), district:(cur && cur.district) || (m && m.district), late:cur && cur.late, lateMin:cur && cur.lateMin };
+  render();
+  try{
+    const { error } = await sb.from('ignis_votes').upsert({
+      event_id:ev.id, member_name:name, status:next,
+      gender:(cur && cur.gender) || (m && m.gender) || null,
+      district:(cur && cur.district) || (m && m.district) || null,
+      late_arrival:!!(cur && cur.late), late_minutes:(cur && cur.lateMin) || null,
+      vote_type: next === 'waiting' ? 'regular' : null, ts:Date.now()
+    }, { onConflict:'event_id,member_name' });
+    if(error) throw error;
+  }catch(e){ console.error('이동 실패', e); alert('저장에 실패했습니다.'); }
+}
+
+async function patchBlob(mutate){
+  const { data } = await sb.from('ignis_state').select('value').eq('key', STATE_ROW_KEY).maybeSingle();
+  const blob = (data && data.value) || {};
+  mutate(blob);
+  const { error } = await sb.from('ignis_state').upsert({ key:STATE_ROW_KEY, value:blob, updated_at:new Date().toISOString() });
+  if(error) throw error;
+  S.blob = blob;
+}
+
+async function toggleCourt3(ev){
+  if(!isAdmin()) return;
+  const next = !ev.court3Confirmed;
+  try{
+    await patchBlob(b => { if(!b.court3Confirmed) b.court3Confirmed = {}; b.court3Confirmed[ev.id] = next ? true : null; });
+    S.events = buildWeek(); render();
+  }catch(e){ console.error(e); alert('저장에 실패했습니다.'); }
+}
+
+async function toggleFp(name){
+  if(!S.myName) return;
+  if(name !== S.myName && !isAdmin()) return;
+  const cur = (S.blob.fingerprintChecks || {})[name];
+  const next = !(cur && cur.checked);
+  try{
+    await patchBlob(b => { if(!b.fingerprintChecks) b.fingerprintChecks = {}; b.fingerprintChecks[name] = { checked:next, ts:Date.now() }; });
+    render();
+  }catch(e){ console.error(e); alert('저장에 실패했습니다.'); }
+}
+
+async function addComment(ev, text){
+  if(!S.myName || !text.trim()) return;
+  const ts = Date.now();
+  if(!S.comments[ev.id]) S.comments[ev.id] = [];
+  S.comments[ev.id].push({ id:'tmp'+ts, name:S.myName, body:text.trim(), ts });
+  render();
+  try{ await sb.from('ignis_comments').insert({ event_id:ev.id, member_name:S.myName, body:text.trim(), ts }); }
+  catch(e){ console.error('댓글 저장 실패', e); }
+}
+
+async function markNotisRead(){
+  if(!S.myName) return;
+  try{
+    const { data } = await sb.from('ignis_notifications').select('id, read_by').limit(200);
+    for(const row of (data || [])){
+      if(!(row.read_by || []).includes(S.myName)){
+        await sb.from('ignis_notifications').update({ read_by:[...(row.read_by || []), S.myName] }).eq('id', row.id);
+      }
+    }
+    S.notifications = S.notifications.map(n => ({ ...n, read:true }));
+  }catch(e){ console.error('읽음 처리 실패', e); }
+}
+
+/* ---------- 화면 ---------- */
+function weekBar(){
+  const P = pal(), cells = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(S.weekStart); d.setDate(d.getDate()+i);
+    const on = i === S.dow, weekend = i >= 5, accent = weekend ? P.gold : P.lime;
+    const has = S.events.some(e => e.i === i);
+    cells.push(`<button data-dow="${i}" style="flex:1;border:1px solid ${on?accent:(weekend?P.goldLine:P.line)};background:${on?accent:'transparent'};border-radius:14px;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <span style="font-size:9.5px;font-weight:800;color:${on?P.bg:(weekend?P.gold:P.inkSoft)};">${WD[(i+1)%7]}</span>
+      <span class="bebas" style="font-size:21px;line-height:1;color:${on?P.bg:(weekend?P.gold:P.ink)};">${d.getDate()}</span>
+      <span style="width:4px;height:4px;border-radius:50%;background:${on?P.bg:(has?accent:P.line)};"></span>
+    </button>`);
+  }
+  return `<div style="display:flex;gap:5px;padding:0 16px 13px;">${cells.join('')}</div>`;
+}
+
+function voteButtons(ev){
+  const P = pal(), mine = (S.votes[ev.id] || {})[S.myName] || null;
+  const st = mine && mine.status;
+  let label = '참석 ▾', on = false;
+  if(st === 'attend'){ on = true; label = mine.late ? `참석 · 늦참 ${mine.lateMin||''}분` : (mine.lessonTime ? `참석 · 레슨 ${mine.lessonTime}` : '참석'); }
+  else if(st === 'waiting'){ on = true; label = '대기'; }
+  const absentOn = st === 'absent';
+  return `<div class="btnrow" style="grid-template-columns:2fr 1fr;">
+    <button class="vbtn" data-sheet="${ev.id}" style="${on?`background:${P.lime};color:${P.bg};border-color:${P.lime};`:''}">${label}</button>
+    <button class="vbtn" data-vote="absent" data-ev="${ev.id}" style="${absentOn?`background:${P.rose};color:${P.bg};border-color:${P.rose};`:''}">불참</button>
+  </div>`;
+}
+
+function sheetView(){
+  const P = pal(), ev = S.events.find(e => e.id === S.sheet);
+  if(!ev) return '';
+  const opts = [['attend','1  참석','정상 시간에 참석'],['late','2  늦참','늦는 시간(분) 입력'],['lesson','3  레슨','레슨 시간 입력'],['waiting','4  대기','정원 초과 시 대기로 등록']];
+  return `<div id="sheetBg" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;">
+    <div id="sheetBody" style="width:100%;max-width:520px;background:${P.card};border-radius:26px 26px 0 0;border-top:1px solid ${P.line};padding:18px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:9px;">
+      <div style="font-size:13.5px;font-weight:900;">${Number(ev.date.slice(5,7))}.${Number(ev.date.slice(8,10))} ${WD[ev.dow]}요일 · ${esc(ev.location)} ${esc(ev.courts)}</div>
+      <div style="font-size:11.5px;color:${P.inkSoft};margin-bottom:3px;">어떤 방식으로 참석하시겠어요?</div>
+      ${opts.map(([k,l,d]) => `<button data-vote="${k}" data-ev="${ev.id}" style="border:1px solid ${P.line};background:transparent;border-radius:13px;padding:12px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;">
+        <span style="font-size:14.5px;font-weight:900;color:${P.ink};">${l}</span>
+        <span style="font-size:11px;color:${P.inkSoft};">${d}</span>
+      </button>`).join('')}
+      <button data-vote="cancel" data-ev="${ev.id}" style="border:1px solid ${P.line};background:transparent;color:${P.inkSoft};border-radius:13px;height:44px;font-size:12.5px;font-weight:800;">참석 취소</button>
+    </div>
+  </div>`;
+}
+
+function genderBoxes(ev){
+  const P = pal(), r = rosterOf(ev);
+  return [{ k:'여', people:r.f, c:P.g.f },{ k:'남', people:r.m, c:P.g.m }]
+    .sort((a,b) => b.people.length - a.people.length)
+    .map(b => `<div class="gbox" style="border-color:${b.c.l};background:${b.c.s};">
+      <div style="font-size:10.5px;font-weight:900;letter-spacing:.8px;color:${b.c.c};">${b.k}자 ${b.people.length}</div>
+      <div class="gnames">${b.people.length ? b.people.map(p => `<span style="color:${b.c.c};">${esc(p.name)}${p.late?'*':''}</span>`).join('') : `<span style="color:${P.inkFaint};grid-column:span 6;text-align:left;">아직 없어요</span>`}</div>
+    </div>`).join('');
+}
+
+function waitingBox(ev){
+  const P = pal(), r = rosterOf(ev);
+  if(!r.waiting.length) return '';
+  return `<div style="border:1px dashed ${P.goldLine};border-radius:12px;padding:9px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+    <span style="font-size:10px;font-weight:900;letter-spacing:.8px;color:${P.gold};">대기 ${r.waiting.length}</span>
+    ${r.waiting.map((p,i) => `<span style="font-size:11px;font-weight:800;color:${P.gold};">${i+1}. ${esc(p.name)} <span style="color:${P.inkFaint};font-weight:700;">${esc(p.district)}</span></span>`).join('')}
+  </div>`;
+}
+
+function court3Note(ev){
+  if(ev.hasOverride) return ev.court3Confirmed ? `3번코트 확보 · 정원은 운영진 지정값 ${ev.max}명` : `3번코트 미확보 · 정원은 운영진 지정값 ${ev.max}명`;
+  return ev.court3Confirmed ? `3번코트 확보 · 정원 ${ev.confirmedMax}명` : `3번코트 미확보 · 정원 ${ev.unconfirmedMax}명 (확보시 ${ev.confirmedMax}명으로 확대)`;
+}
+
+function pastCard(ev){
+  const P = pal(), r = rosterOf(ev);
+  const v = P.venue[ev.location] || { c:P.lime, l:P.line, s:P.chip };
+  return `<div data-expand="${ev.id}" style="border:1px solid ${P.line};border-left:4px solid ${v.l};border-radius:16px;background:transparent;padding:12px 14px;display:flex;align-items:center;gap:10px;opacity:.62;">
+    <span class="bebas" style="font-size:19px;line-height:1;color:${P.inkFaint};">${ev.start}</span>
+    <span style="font-size:12px;font-weight:800;color:${P.inkFaint};flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(ev.location)} ${esc(ev.courts)}</span>
+    <span style="font-size:11px;font-weight:800;color:${P.inkFaint};">참석 ${r.going.length}</span>
+    <span style="font-size:10px;font-weight:900;color:${P.inkFaint};border:1px solid ${P.line};padding:2px 7px;border-radius:999px;">종료</span>
+    <span style="font-size:12px;color:${P.inkFaint};">▾</span>
+  </div>`;
+}
+
+function eventCard(ev){
+  const P = pal(), r = rosterOf(ev);
+  const v = P.venue[ev.location] || { c:P.lime, l:P.line, s:P.chip };
+  const full = r.going.length >= ev.max, stateC = full ? P.rose : P.gold;
+  const dateBig = `${Number(ev.date.slice(5,7))}.${Number(ev.date.slice(8,10))}`;
+  const c3 = ev.includesCourt3 ? `<div style="font-size:11px;font-weight:700;color:${ev.court3Confirmed?P.lime:P.gold};border-left:2px solid ${ev.court3Confirmed?P.lime:P.gold};padding-left:9px;line-height:1.5;">${court3Note(ev)}</div>` : '';
+  const admin = isAdmin() ? `<div class="btnrow" style="grid-template-columns:repeat(${ev.includesCourt3?2:1},1fr);border-top:1px solid ${P.line};padding-top:11px;">
+      ${ev.includesCourt3 ? `<button data-c3="${ev.id}" style="border:none;background:${ev.court3Confirmed?P.lime:P.chip};color:${ev.court3Confirmed?P.bg:P.lime};border-radius:11px;height:40px;font-size:11.5px;font-weight:900;">${ev.court3Confirmed?'✅ 3번코트 확보됨':'🎾 3번코트 확보'}</button>` : ''}
+      <button data-open="${ev.id}" style="border:none;background:${P.chip};color:${P.lime};border-radius:11px;height:40px;font-size:11.5px;font-weight:900;">⇄ 회원 이동</button>
+    </div>` : '';
+
+  return `<div class="card" style="border-left:4px solid ${v.c};">
+    <div data-open="${ev.id}" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+        <div style="font-size:17px;font-weight:900;letter-spacing:-.2px;line-height:1.35;">
+          <span>${Number(ev.date.slice(5,7))}.${Number(ev.date.slice(8,10))}</span>
+          <span style="color:${dowColor(ev.dow,P)};"> ${ev.dowKo}요일</span>
+          <span style="color:${P.inkFaint};"> · </span>
+          <span style="color:${v.c};">${esc(ev.location)} ${esc(ev.courts)}</span>
+        </div>
+        <span class="pill" style="color:${stateC};border-color:${stateC};">${full?'정원마감':'정원 '+ev.max}</span>
+      </div>
+      <div style="font-size:12.5px;font-weight:800;color:${P.inkSoft};">${esc(ev.title)}</div>
+      <div class="bebas" style="font-size:44px;line-height:.86;">${ev.time}</div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span class="bebas" style="font-size:28px;line-height:1;">${r.going.length}</span>
+        <span style="font-size:12px;font-weight:700;color:${P.inkSoft};">/ ${ev.max}명 · 여${r.f.length} 남${r.m.length} · 대기 ${r.waiting.length}</span>
+      </div>
+      <div class="gauge"><div style="height:100%;background:${P.g.f.c};width:${Math.min(100, r.f.length/ev.max*100)}%;"></div><div style="height:100%;background:${P.g.m.c};width:${Math.min(100, r.m.length/ev.max*100)}%;"></div></div>
+      <div style="display:flex;flex-direction:column;gap:7px;">${genderBoxes(ev)}</div>
+      ${waitingBox(ev)}
+      ${c3}
+    </div>
+    ${voteButtons(ev)}
+    ${admin}
+  </div>`;
+}
+
+function detailScreen(ev){
+  const P = pal(), r = rosterOf(ev);
+  const v = P.venue[ev.location] || { c:P.lime, l:P.line, s:P.chip };
+  const dateBig = `${Number(ev.date.slice(5,7))}.${Number(ev.date.slice(8,10))}`;
+  const groups = [
+    { title:'여자 참석', people:r.f, c:P.g.f.c, o: r.f.length >= r.m.length ? 0 : 1 },
+    { title:'남자 참석', people:r.m, c:P.g.m.c, o: r.m.length > r.f.length ? 0 : 1 },
+    { title:'대기', people:r.waiting, c:P.gold, o:2 },
+    { title:'불참', people:r.absent, c:P.inkSoft, o:3 }
+  ].sort((a,b) => a.o - b.o);
+  const KO = { attend:'참석', absent:'불참', waiting:'대기' };
+  const moveLabel = st => st === 'attend' ? '→대기' : st === 'waiting' ? '→불참' : '→참석';
+  const cmts = (S.comments[ev.id] || []).slice(-30);
+
+  return `<div class="card" style="border-left:4px solid ${v.c};">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+        <div style="font-size:18px;font-weight:900;letter-spacing:-.2px;line-height:1.35;">
+          <span>${dateBig}</span>
+          <span style="color:${dowColor(ev.dow,P)};"> ${ev.dowKo}요일</span>
+          <span style="color:${P.inkFaint};"> · </span>
+          <span style="color:${v.c};">${esc(ev.location)} ${esc(ev.courts)}</span>
+        </div>
+        <span class="pill" style="color:${P.gold};border-color:${P.gold};">정원 ${ev.max}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:12.5px;font-weight:800;color:${P.inkSoft};">${esc(ev.title)}</span>
+      </div>
+      <div class="bebas" style="font-size:52px;line-height:.85;">${ev.time}</div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span class="bebas" style="font-size:29px;line-height:1;">${r.going.length}</span>
+        <span style="font-size:12px;font-weight:700;color:${P.inkSoft};">/ ${ev.max}명 · 대기 ${r.waiting.length}</span>
+      </div>
+      ${voteButtons(ev)}
+    </div>
+
+    ${isAdmin() ? `<div style="border:1px dashed ${P.rose};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+      <div style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:${P.rose};">운영진 전용</div>
+      ${ev.includesCourt3 ? `<button data-c3="${ev.id}" style="border:none;background:${ev.court3Confirmed?P.lime:P.chip};color:${ev.court3Confirmed?P.bg:P.lime};border-radius:11px;height:42px;font-size:12.5px;font-weight:900;">${ev.court3Confirmed?'✅ 3번코트 확보 취소':'🎾 3번코트 확보 확인'}</button>` : ''}
+      <button data-promote="${ev.id}" style="border:none;background:${P.lime};color:${P.bg};border-radius:11px;height:42px;font-size:12.5px;font-weight:900;">⚡ 대기 자동승급 실행 (여자리 ${Math.max(0, ev.max - r.going.length)})</button>
+      <div style="font-size:11px;color:${P.inkFaint};line-height:1.65;">명단에서 이름을 누르면 늦참·레슨 시간을 수정할 수 있습니다.</div>
+    </div>` : ''}
+
+    ${groups.map(g => `<div style="border:1px solid ${P.line};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:9px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:${g.c};">${g.title}</span>
+        <span class="bebas" style="font-size:20px;line-height:1;color:${g.c};">${g.people.length}</span>
+      </div>
+      ${g.people.length ? g.people.map((p,i) => `<div style="display:flex;align-items:center;gap:9px;">
+          <span class="bebas" style="font-size:15px;color:${P.inkFaint};width:15px;">${i+1}</span>
+          <span ${isAdmin()?`data-edit="${esc(p.name)}" data-ev="${ev.id}"`:''} style="font-size:14px;font-weight:800;color:${p.g==='여'?P.g.f.c:P.g.m.c};flex:1;min-width:0;${isAdmin()?'cursor:pointer;':''}">${esc(p.name)}${isAdmin()?' ✎':''}</span>
+          ${p.late?`<span style="font-size:10px;font-weight:800;color:${P.gold};">늦${p.lateMin||''}분</span>`:''}
+          ${p.lessonTime?`<span style="font-size:10px;font-weight:800;color:${P.gold};">레슨 ${esc(p.lessonTime)}</span>`:''}
+          <span style="font-size:10px;font-weight:800;color:${P.inkFaint};border:1px solid ${P.inkFaint};padding:2px 7px;border-radius:6px;">${esc(p.district)}</span>
+          ${isAdmin() ? `<button data-move="${esc(p.name)}" data-ev="${ev.id}" style="border:none;background:${P.chip};color:${P.lime};border-radius:8px;padding:5px 9px;font-size:11px;font-weight:900;">${moveLabel(p.status)}</button>` : ''}
+        </div>`).join('') : `<div style="font-size:12.5px;color:${P.inkFaint};">아직 없어요</div>`}
+    </div>`).join('')}
+
+    <div style="border:1px solid ${P.line};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:11px;">
+      <div style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:${P.inkSoft};">댓글</div>
+      ${cmts.length ? cmts.map(c => `<div style="display:flex;flex-direction:column;gap:3px;">
+        <div style="display:flex;gap:7px;align-items:baseline;">
+          <span style="font-size:12.5px;font-weight:900;color:${String(c.name).includes('AI')?P.gold:P.ink};">${esc(c.name)}</span>
+          <span style="font-size:10px;color:${P.inkFaint};">${c.ts?new Date(c.ts).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span>
+        </div>
+        <div style="font-size:13px;line-height:1.55;">${esc(c.body)}</div>
+      </div>`).join('') : `<div style="font-size:12.5px;color:${P.inkFaint};">첫 댓글을 남겨보세요</div>`}
+      <div style="display:flex;gap:7px;">
+        <input id="cmtInput" placeholder="댓글 입력" style="flex:1;">
+        <button data-cmt="${ev.id}" style="border:none;background:${P.lime};color:${P.bg};border-radius:11px;width:64px;font-size:13px;font-weight:900;">등록</button>
+      </div>
+    </div>`;
+}
+
+function fpScreen(){
+  const P = pal();
+  const extra = (S.blob && S.blob.fingerprintExtraTargets) || [];
+  const checks = (S.blob && S.blob.fingerprintChecks) || {};
+  const targets = [...FP_A, ...FP_B, ...extra].filter(n => S.members.some(m => m.name === n));
+  const done = targets.filter(n => checks[n] && checks[n].checked);
+  const mine = S.myName && targets.includes(S.myName);
+  const myDone = !!(checks[S.myName] && checks[S.myName].checked);
+  const pct = targets.length ? Math.round(done.length / targets.length * 100) : 0;
+
+  const groupBox = (title, names) => {
+    const list = names.filter(n => S.members.some(m => m.name === n));
+    if(!list.length) return '';
+    return `<div style="border:1px solid ${P.line};border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:${P.inkSoft};">${title}</span>
+        <span class="bebas" style="font-size:19px;line-height:1;color:${P.lime};">${list.filter(n=>checks[n]&&checks[n].checked).length}/${list.length}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        ${list.map(n => {
+          const ok = !!(checks[n] && checks[n].checked);
+          const clickable = isAdmin() || n === S.myName;
+          return `<button ${clickable?`data-fp="${esc(n)}"`:''} style="border:1px solid ${ok?P.lime:P.line};background:${ok?P.lime:'transparent'};color:${ok?P.bg:P.inkSoft};border-radius:8px;padding:5px 9px;font-size:11.5px;font-weight:800;${clickable?'':'cursor:default;'}">${ok?'✓ ':''}${esc(n)}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  };
+
+  return `<div style="border:1px solid ${P.line};border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;">
+      <div style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:${P.inkSoft};">종합운동장 지문등록 현황</div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span class="bebas" style="font-size:46px;line-height:.9;color:${P.lime};">${done.length}</span>
+        <span style="font-size:13px;font-weight:700;color:${P.inkSoft};">/ ${targets.length}명 완료 (${pct}%)</span>
+      </div>
+      <div class="gauge" style="height:6px;"><div style="height:100%;background:${P.lime};width:${pct}%;"></div></div>
+      ${mine ? `<button data-fp="${esc(S.myName)}" style="border:1px solid ${myDone?P.lime:P.line};background:${myDone?P.lime:'transparent'};color:${myDone?P.bg:P.ink};border-radius:11px;height:46px;font-size:13.5px;font-weight:900;">${myDone?'✓ 내 지문등록 완료됨 (누르면 취소)':'내 지문등록 완료 체크'}</button>`
+        : `<div style="font-size:12px;color:${P.inkFaint};line-height:1.7;">${S.myName?'관외 회원은 지문등록 대상이 아닙니다.':'로그인하면 본인 지문등록을 체크할 수 있습니다.'}</div>`}
+    </div>
+    ${groupBox('A조', FP_A)}
+    ${groupBox('B조', FP_B)}
+    ${extra.length ? groupBox('추가 대상', extra) : ''}
+    <div style="font-size:11px;color:${P.inkFaint};line-height:1.7;">${isAdmin()?'운영진은 모든 회원의 체크를 누를 수 있습니다.':'본인 항목만 체크할 수 있습니다. 대상자 추가·초기화는 기존 사이트에서 진행해 주세요.'}</div>`;
+}
+
+function notifScreen(){
+  const P = pal();
+  if(!S.notifications.length) return `<div style="color:${P.inkFaint};font-size:13px;padding:12px 4px;">알림이 없습니다.</div>`;
+  return S.notifications.map(n => `<div style="border:1px solid ${n.read?P.line:P.limeLine};background:${n.read?'transparent':P.card};border-radius:20px;padding:14px;display:flex;gap:11px;">
+    <div style="width:6px;height:6px;border-radius:50%;background:${n.read?'transparent':P.rose};margin-top:7px;flex-shrink:0;"></div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;line-height:1.6;">${esc(n.body)}</div>
+      <div style="font-size:10.5px;font-weight:700;color:${P.inkFaint};margin-top:6px;">${n.ts?new Date(n.ts).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+    </div>
+  </div>`).join('');
+}
+
+function meScreen(){
+  const P = pal();
+  const myAttend = S.events.filter(e => { const v = (S.votes[e.id]||{})[S.myName]; return v && v.status === 'attend'; }).length;
+  return `<div style="border:1px solid ${P.line};border-radius:22px;padding:18px;display:flex;align-items:center;gap:13px;">
+      <div class="bebas" style="width:52px;height:52px;border-radius:50%;border:1px solid ${P.lime};color:${P.lime};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">${esc(S.myName?S.myName.slice(0,1):'?')}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:17px;font-weight:900;">${esc(S.myName || '로그인 필요')}</div>
+        <div style="font-size:11.5px;font-weight:700;color:${P.inkSoft};margin-top:3px;">${S.me?`${S.me.district} · ${S.me.gender}${S.me.is_staff?' · 운영진':''}`:'이름을 선택해 주세요'}</div>
+      </div>
+      ${S.myName?'':`<button id="loginTop" class="topbtn">로그인</button>`}
+    </div>
+    <div style="border:1px solid ${P.line};border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:9px;">
+      <div style="font-size:10.5px;font-weight:900;letter-spacing:1.2px;color:${P.inkSoft};">이번 주 내 참석</div>
+      <div class="bebas" style="font-size:40px;line-height:1;color:${P.lime};">${myAttend}<span style="font-size:18px;color:${P.inkSoft};"> 회</span></div>
+    </div>
+    <button id="installBtn" style="display:none;border:1px solid ${P.lime};background:transparent;color:${P.lime};border-radius:999px;height:46px;font-size:13px;font-weight:900;">홈 화면에 앱 추가</button>
+    ${isAdmin()?`<button id="adminModeBtn" style="border:1px solid ${P.gold};background:transparent;color:${P.gold};border-radius:999px;height:46px;font-size:13px;font-weight:900;">⚙ 관리자모드 (회원관리·페널티·랭킹 등)</button>`:''}
+    ${S.myName?`<button id="logoutBtn" style="border:1px solid ${P.rose};background:transparent;color:${P.rose};border-radius:999px;height:46px;font-size:13px;font-weight:900;">이름 변경 / 로그아웃</button>`:''}
+    <div style="font-size:11px;color:${P.inkFaint};line-height:1.7;">기존 이그니스 사이트와 같은 데이터를 사용합니다.${isAdmin()?' 회원 관리·페널티·랭킹 등 상세 관리 도구는 위 관리자모드에서 이용해 주세요.':' 회원 관리·페널티·랭킹 등은 운영진에게 문의해 주세요.'}<br>${APP_VERSION}</div>`;
+}
+
+function loginScreen(){
+  const P = pal();
+  const list = S.members.slice().sort((a,b) => a.name.localeCompare(b.name,'ko'));
+  return `<div style="border:1px solid ${P.line};border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:13px;">
+    <div style="font-size:14px;font-weight:800;">본인 이름을 선택해 주세요</div>
+    <select id="nameSel">${list.map(m => `<option value="${esc(m.name)}"${m.name===S.myName?' selected':''}>${esc(m.name)} (${m.gender}/${m.district})</option>`).join('')}</select>
+    <button id="loginBtn" style="border:none;background:${P.lime};color:${P.bg};border-radius:11px;height:46px;font-size:14px;font-weight:900;">시작하기</button>
+    <div style="font-size:11.5px;color:${P.inkFaint};line-height:1.7;">목록에 이름이 없으면 기존 사이트에서 먼저 가입해 주세요.</div>
+  </div>`;
+}
+
+async function autoPromote(ev){
+  if(!isAdmin()) return;
+  const r = rosterOf(ev);
+  const room = ev.max - r.going.length;
+  if(room <= 0){ alert('빈 자리가 없습니다.'); return; }
+  if(!r.waiting.length){ alert('대기 인원이 없습니다.'); return; }
+  const inside = r.waiting.filter(p => p.district === '관내');
+  const outside = r.waiting.filter(p => p.district !== '관내');
+  const picked = [...inside, ...outside].slice(0, room);
+  if(!confirm(`${picked.map(p => p.name).join(', ')}\n총 ${picked.length}명을 참석으로 승급합니다.`)) return;
+  picked.forEach(p => { S.votes[ev.id][p.name] = { ...S.votes[ev.id][p.name], status:'attend' }; });
+  render();
+  try{
+    for(const p of picked){
+      const { error } = await sb.from('ignis_votes').upsert({
+        event_id:ev.id, member_name:p.name, status:'attend',
+        gender:p.g, district:p.district, promoted_from:'waiting', ts:Date.now()
+      }, { onConflict:'event_id,member_name' });
+      if(error) throw error;
+    }
+    await sb.from('ignis_notifications').insert({
+      ts:Date.now(), body:`${ev.date.slice(5).replace('-','.')} ${ev.location} ${ev.courts} 대기 승급: ${picked.map(p=>p.name).join(', ')}`, read_by:[]
+    });
+  }catch(e){ console.error(e); alert('승급 저장에 실패했습니다.'); }
+}
+
+async function editTiming(ev, name){
+  if(!isAdmin()) return;
+  const cur = (S.votes[ev.id] || {})[name] || {};
+  const kind = prompt(`${name}님 시간 수정\n1 = 늦참(분), 2 = 레슨(시간), 3 = 해제`, cur.late ? '1' : cur.lessonTime ? '2' : '1');
+  if(kind === null) return;
+  let patch = null, local = null;
+  const k = String(kind).trim();
+  if(k === '1'){
+    const v = prompt('늦는 시간(분)', cur.lateMin ? String(cur.lateMin) : '15');
+    if(v === null) return;
+    const mins = Math.max(1, Math.min(300, parseInt(String(v).replace(/[^0-9]/g,''), 10) || 0));
+    if(!mins) return;
+    patch = { late_arrival:true, late_minutes:mins, lesson_time:null };
+    local = { late:true, lateMin:mins, lessonTime:null };
+  } else if(k === '2'){
+    const v = prompt('레슨 시간 (예: 06:00)', cur.lessonTime || ev.start);
+    if(v === null || !String(v).trim()) return;
+    patch = { late_arrival:false, late_minutes:null, lesson_time:String(v).trim() };
+    local = { late:false, lateMin:null, lessonTime:String(v).trim() };
+  } else if(k === '3'){
+    patch = { late_arrival:false, late_minutes:null, lesson_time:null };
+    local = { late:false, lateMin:null, lessonTime:null };
+  } else return;
+
+  S.votes[ev.id][name] = { ...cur, ...local };
+  render();
+  try{
+    const { error } = await sb.from('ignis_votes').upsert({
+      event_id:ev.id, member_name:name, status:cur.status || 'attend',
+      gender:cur.gender || null, district:cur.district || null, ts:Date.now(), ...patch
+    }, { onConflict:'event_id,member_name' });
+    if(error) throw error;
+  }catch(e){ console.error(e); alert('저장에 실패했습니다.'); }
+}
+
+function render(){
+  const app = document.getElementById('app'), P = pal(), sc = S.screen;
+  const ev = S.events.find(e => e.id === S.selectedId);
+  const unread = S.notifications.filter(n => !n.read).length;
+
+  let title = '이그니스 코트', sub = '', body = '', bar = '';
+  if(sc === 'today'){
+    const d0 = new Date(S.weekStart), d6 = new Date(S.weekStart); d6.setDate(d6.getDate()+6);
+    sub = `${d0.getMonth()+1}월 ${d0.getDate()}일 – ${d6.getMonth()+1}월 ${d6.getDate()}일`;
+    bar = weekBar();
+    const list = S.events.filter(e => e.i === S.dow);
+    const past = list.filter(isPast).length;
+    body = list.length
+      ? list.map(e => (isPast(e) && !S.expanded[e.id]) ? pastCard(e) : eventCard(e)).join('')
+        + (past && past === list.length ? `<div style="font-size:11.5px;color:${P.inkFaint};padding:2px 4px;line-height:1.7;">이 날 일정은 모두 종료되었습니다. 종료된 코트를 누르면 펼쳐 볼 수 있어요.</div>` : '')
+      : `<div style="color:${P.inkFaint};font-size:13px;padding:14px 4px;">이 날은 등록된 일정이 없습니다.</div>`;
+  } else if(sc === 'detail' && ev){
+    title = ev.location; sub = `${ev.date.replace(/-/g,'.')} · ${ev.courts}`; body = detailScreen(ev);
+  } else if(sc === 'notifications'){
+    title = '알림'; sub = `읽지 않음 ${unread}건`; body = notifScreen();
+  } else if(sc === 'fp'){
+    title = '지문체크'; sub = '종합운동장 출입 지문등록'; body = fpScreen();
+  } else if(sc === 'login'){
+    title = '로그인'; sub = '이그니스 테니스클럽'; body = loginScreen();
+  } else {
+    title = '내 정보'; sub = '이그니스 테니스클럽'; body = meScreen();
+  }
+
+  const tab = (key, label, badge) => `<button data-tab="${key}" class="${(sc===key||(key==='today'&&sc==='detail'))?'on':''}">
+    <span class="tablabel">${label}</span><span class="bar"></span>${badge?`<span class="badge">${badge}</span>`:''}</button>`;
+
+  app.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;padding:12px 16px 8px;flex-shrink:0;">
+      <div class="seg">
+        <button data-mode="light" class="${S.mode==='light'?'on':''}">LIGHT</button>
+        <button data-mode="dark" class="${S.mode==='dark'?'on':''}">DARK</button>
+      </div>
+      <div style="flex:1;"></div>
+      ${S.myName
+        ? `<button id="profileBtn" style="border:1px solid ${P.line};background:transparent;border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:900;color:${P.lime};">${esc(S.myName)}</button>`
+        : `<button id="loginTop" class="topbtn">로그인</button>`}
+    </div>
+    <div style="padding:2px 20px 12px;display:flex;align-items:center;gap:11px;flex-shrink:0;">
+      ${sc==='detail'
+        ? `<div data-blank="1" style="flex:1;min-width:0;cursor:pointer;">
+            <div class="bebas" style="font-size:32px;line-height:.95;">${esc(title)}</div>
+            <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:${P.lime};margin-top:4px;">${esc(sub)}</div>
+          </div>`
+        : `<div style="flex:1;min-width:0;">
+            <div class="bebas" style="font-size:32px;line-height:.95;">${esc(title)}</div>
+            <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:${P.lime};margin-top:4px;">${esc(sub)}</div>
+          </div>`}
+    </div>
+    ${bar}
+    <div class="scroll" ${sc==='detail'?'data-blankzone="1"':''}>${S.loadErr?`<div class="load">${esc(S.loadErr)}</div>`:body}${sc==='detail'?`<div data-blank="1" style="min-height:110px;display:flex;align-items:flex-start;justify-content:center;padding-top:22px;font-size:11.5px;font-weight:800;color:${P.inkFaint};">벼 공간을 누르면 일정 목록으로 돌아겁니다</div>`:''}</div>
+    <div class="tabbar">${tab('today','SCHEDULE',0)}${tab('notifications','ALERTS',unread)}${tab('fp','지문체크',0)}${tab('settings','ME',0)}</div>
+    ${S.sheet ? sheetView() : ''}`;
+
+  wire();
+}
+
+function wire(){
+  const app = document.getElementById('app');
+  const q = (s, fn) => app.querySelectorAll(s).forEach(fn);
+
+  q('[data-mode]', b => b.onclick = () => {
+    S.mode = b.dataset.mode;
+    document.documentElement.dataset.mode = S.mode;
+    try{ localStorage.setItem('ignis-mode', S.mode); }catch(e){}
+    render();
+  });
+  q('[data-tab]', b => b.onclick = () => {
+    S.screen = b.dataset.tab; render();
+    if(b.dataset.tab === 'notifications') markNotisRead().then(render);
+  });
+  q('[data-expand]', b => b.onclick = () => { S.expanded[b.dataset.expand] = true; render(); });
+  q('[data-dow]', b => b.onclick = () => { S.dow = +b.dataset.dow; render(); });
+  q('[data-open]', b => b.onclick = (e) => {
+    if(e.target.closest('[data-vote],[data-c3],[data-move]')) return;
+    S.selectedId = b.dataset.open; S.screen = 'detail'; render();
+  });
+  q('[data-vote]', b => b.onclick = (e) => {
+    e.stopPropagation();
+    const ev = S.events.find(x => x.id === b.dataset.ev);
+    if(ev) vote(ev, b.dataset.vote);
+  });
+  q('[data-c3]', b => b.onclick = (e) => {
+    e.stopPropagation();
+    const ev = S.events.find(x => x.id === b.dataset.c3);
+    if(ev) toggleCourt3(ev);
+  });
+  q('[data-move]', b => b.onclick = (e) => {
+    e.stopPropagation();
+    const ev = S.events.find(x => x.id === b.dataset.ev);
+    if(ev) moveMember(ev, b.dataset.move);
+  });
+  q('[data-promote]', b => b.onclick = (e) => {
+    e.stopPropagation();
+    const ev = S.events.find(x => x.id === b.dataset.promote);
+    if(ev) autoPromote(ev);
+  });
+  q('[data-edit]', b => b.onclick = (e) => {
+    e.stopPropagation();
+    const ev = S.events.find(x => x.id === b.dataset.ev);
+    if(ev) editTiming(ev, b.dataset.edit);
+  });
+  q('[data-sheet]', b => b.onclick = (e) => {
+    e.stopPropagation();
+    if(!S.myName){ S.screen = 'login'; render(); return; }
+    S.sheet = b.dataset.sheet; render();
+  });
+  q('[data-blank]', b => b.onclick = () => { S.screen = 'today'; S.selectedId = null; render(); });
+  q('[data-blankzone]', b => b.onclick = (e) => { if(e.target === b){ S.screen = 'today'; S.selectedId = null; render(); } });
+  const sheetBg = document.getElementById('sheetBg');
+  if(sheetBg) sheetBg.onclick = (e) => { if(e.target === sheetBg){ S.sheet = null; render(); } };
+  q('[data-fp]', b => b.onclick = () => toggleFp(b.dataset.fp));
+
+  const cmtBtn = app.querySelector('[data-cmt]');
+  if(cmtBtn) cmtBtn.onclick = () => {
+    const input = document.getElementById('cmtInput');
+    const ev = S.events.find(x => x.id === cmtBtn.dataset.cmt);
+    if(ev && input) addComment(ev, input.value);
+  };
+  const byId = (id, fn) => { const el = document.getElementById(id); if(el) el.onclick = fn; };
+  byId('profileBtn', () => { S.screen = 'settings'; render(); });
+  byId('loginTop', () => { S.screen = 'login'; render(); });
+  byId('loginBtn', async () => {
+    const name = document.getElementById('nameSel').value;
+    S.myName = name;
+    try{ localStorage.setItem('ignis-my-name', name); }catch(e){}
+    S.screen = 'today'; render();
+    try{ await loadAll(); render(); }catch(e){ console.error(e); }
+  });
+  byId('logoutBtn', () => {
+    try{ localStorage.removeItem('ignis-my-name'); }catch(e){}
+    S.myName = ''; S.me = null; S.screen = 'login'; render();
+  });
+  const inst = document.getElementById('installBtn');
+  if(inst && deferredPrompt){ inst.style.display = 'block'; inst.onclick = () => deferredPrompt.prompt(); }
+  byId('adminModeBtn', () => { location.href = '/admin.html'; });
+}
+
+let deferredPrompt = null;
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+
+(async function init(){
+  try{
+    // ⚠️ dothome(닷홈빌더)은 "공통코드입력"이 사이트 전체에 단 하나만 적용되는 방식이라,
+    // 이 심플버전처럼 완전히 독립된 URL을 가진 페이지를 dothome 안에는 만들 수 없었음.
+    // 그래서 이 파일은 Vercel(다른 도메인)에 별도 호스팅되고, 메인 앱은 iframe으로 이 페이지를 불러옴.
+    // 다른 도메인이라 localStorage가 자동 공유되지 않으므로, 메인 앱이 iframe src에 ?name=이름 을
+    // 붙여서 넘겨주면 그 값으로 자동 로그인되고, 이후 이 창 자체를 다시 방문할 때를 위해 로컬에도 저장해둠.
+    const urlName = new URLSearchParams(location.search).get('name');
+    S.myName = urlName || localStorage.getItem('ignis-my-name') || '';
+    if(urlName){ try{ localStorage.setItem('ignis-my-name', urlName); }catch(e){} }
+    S.mode = localStorage.getItem('ignis-mode') || 'dark';
+  }catch(e){}
+  document.documentElement.dataset.mode = S.mode;
+  const today = new Date();
+  S.weekStart = mondayOf(today);
+  S.dow = (today.getDay() + 6) % 7;
+  try{
+    await loadAll();
+    S.dow = effectiveDow();
+    if(!S.myName) S.screen = 'login';
+  }catch(e){
+    console.error(e);
+    S.loadErr = '데이터를 불러오지 못했습니다.\n통신 상태를 확인해 주세요.';
+  }
+  render();
+  setInterval(async () => {
+    if(document.hidden || S.screen === 'login') return;
+    try{ await loadAll(); S.loadErr = ''; render(); }catch(e){}
+  }, 45000);
+  if('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('/pwa/sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>
